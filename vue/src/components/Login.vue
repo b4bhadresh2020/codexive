@@ -1,6 +1,6 @@
 <template>
     <v-container>
-            <v-flex xs4 lg12   class="grey lighten-4">
+            <v-flex xs4 lg12 class="grey lighten-4">
                 <v-row align="center" justify="center">
                     <img src="@/assets/codexive.png" >
                 </v-row>
@@ -13,6 +13,7 @@
                     v-if="message"
                     border="right"
                     color="red"
+                    class="mx-4"
                     elevation="4"
                     text
                     type="success"

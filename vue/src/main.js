@@ -5,7 +5,7 @@ import vueRouter from 'vue-router';
 import axios from 'axios'
 Vue.use(vueRouter);
 
-axios.defaults.baseURL = "http://decd265b3d6d.ngrok.io/api/"
+axios.defaults.baseURL = "http://127.0.0.1:8000/api/"
 
 Vue.config.productionTip = false
 
