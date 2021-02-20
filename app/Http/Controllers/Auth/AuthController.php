@@ -87,6 +87,7 @@ class AuthController extends Controller
   {
     return response()->json($request->user());
   }
+
   /**
   * Logout user (Revoke the token)
   *
