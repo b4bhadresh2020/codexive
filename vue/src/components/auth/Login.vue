@@ -1,6 +1,7 @@
 <template>
-  <v-container>
-      <v-snackbar
+<div class="form-center">
+  <!-- <v-container> -->
+      <!-- <v-snackbar
       v-if="snackbar"
       timeout="2000"
       :value="true"
@@ -21,12 +22,13 @@
           &times;
         </v-btn>
       </template>
-    </v-snackbar>
-    <v-flex xs4 lg12 class="grey lighten-4">
-      <v-row align="center" justify="center">
-        <img src="@/assets/codexive.png" />
-      </v-row>
-      <v-card elevation="2" shaped>
+    </v-snackbar> -->
+
+      <v-card elevation="2" shaped class="cart-width">
+
+        <v-row align="center" justify="center">
+            <img src="@/assets/codexive.png" />
+        </v-row>
         <v-card-title primary-title>
           <h4>Login</h4>
         </v-card-title>
@@ -67,8 +69,8 @@
           </v-card-actions>
         </v-form>
       </v-card>
-    </v-flex>
-  </v-container>
+  <!-- </v-container> -->
+</div>
 </template>
 
 <script>
@@ -151,3 +153,14 @@ export default {
   },
 };
 </script>
+<style>
+.form-center{
+    height: 100vh;
+    display: flex;
+    place-content: center;
+    align-items: center;
+}
+.cart-width{
+    width: 500px;
+}
+</style>

@@ -1,4 +1,5 @@
 <template>
+<div class="mr-4 ml-4 mt-4">
   <v-data-table
     :headers="headers"
     :items="masterAccounts"
@@ -7,7 +8,7 @@
     :loading="isLoading"
   >
     <template v-slot:top>
-      <v-toolbar flat>
+      <v-toolbar >
         <v-toolbar-title>Master Accounts</v-toolbar-title>
         <v-divider class="mx-4" inset vertical></v-divider>
         <v-spacer></v-spacer>
@@ -288,6 +289,7 @@
       <p>No data available.</p>
     </template>
   </v-data-table>
+</div>
 </template>
 
 

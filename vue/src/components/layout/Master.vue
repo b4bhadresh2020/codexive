@@ -7,6 +7,7 @@
     <v-app-bar app>
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
       <v-toolbar-title></v-toolbar-title>
+      <v-row class="text-left menu">
       <v-menu bottom min-width="200px" rounded offset-y>
         <template v-slot:activator="{ on }">
           <v-btn icon x-large v-on="on">
@@ -33,6 +34,7 @@
           </v-list-item-content>
         </v-card>
       </v-menu>
+      </v-row>
     </v-app-bar>
     <transition>
         <router-view></router-view>
@@ -61,3 +63,9 @@ export default {
   }
 };
 </script>
+<style>
+.menu{
+    display: flex;
+    place-content: flex-end;
+}
+</style>
