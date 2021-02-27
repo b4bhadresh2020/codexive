@@ -4,11 +4,8 @@
       <v-list-item>
         <v-list-item-content>
           <v-list-item-title class="title">
-            Application
+            Codexive
           </v-list-item-title>
-          <v-list-item-subtitle>
-            subtext
-          </v-list-item-subtitle>
         </v-list-item-content>
       </v-list-item>
 
@@ -22,6 +19,8 @@
           v-for="item in items"
           :key="item.title"
           link
+        :to="item.link"
+        active-class="blue--text"
         >
           <v-list-item-icon>
             <v-icon>{{ item.icon }}</v-icon>
@@ -40,9 +39,10 @@
     data () {
       return {
         items: [
-          { title: 'Dashboard', icon: 'mdi-view-dashboard' },
-          { title: 'Photos', icon: 'mdi-image' },
-          { title: 'About', icon: 'mdi-help-box' },
+            { title: 'Branch', icon: 'mdi-account-supervisor', link: '/branches'},
+            { title: 'Accounts', icon: 'mdi-view-dashboard', link: '/accounts' },
+            { title: 'Transactions', icon: 'mdi-image', link: '/transactions' },
+            { title: 'About', icon: 'mdi-help-box', link: '/accounts2' },
         ],
         right: null,
       }

@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\BranchController;
+use App\Http\Controllers\MasterAccountController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -26,8 +30,16 @@ Route::group(['prefix' => 'auth'], function () {
     //     echo "Admins only";
     // })->middleware('groups:admin');
 
+
     Route::group(['middleware' => 'auth:api'], function() {
-      Route::get('logout', [AuthController::class, 'logout']);
-      Route::get('user', [AuthController::class, 'user']);
+        Route::get('logout', [AuthController::class, 'logout']);
+        Route::get('user', [AuthController::class, 'user']);
     });
 });
+Route::get('account/types', [AccountController::class, 'getAccountTypes']);
+Route::resource('accounts', AccountController::class);
+
+Route::resource('masteraccounts', MasterAccountController::class);
+Route::resource('transactions', TransactionController::class);
+
+Route::resource('branches', BranchController::class);

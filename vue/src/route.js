@@ -1,9 +1,13 @@
 import Vue from 'vue';
 import Router from 'vue-router';
+
 Vue.use(Router);
 
-import Master from "./components/Master";
-import Login from "./components/Login";
+import Master from "./components/layout/Master";
+import Login from "./components/auth/Login";
+import Account from './components/account/Account'
+import Transaction from './components/transaction/Transaction'
+import Branch from './components/branch/Branch'
 
 let routes = [
     {
@@ -14,8 +18,26 @@ let routes = [
     {
         path: '/dashbord',
         name: 'master',
-        component: Master
+        component: Master,
+        children: [
+            {
+                path: '/branches',
+                name: 'branches',
+                component: Branch
+            },
+            {
+                path: '/accounts',
+                name: 'accounts',
+                component: Account
+            },
+            {
+                path: '/transactions',
+                name: 'transactions',
+                component: Transaction
+            }
+        ]
     },
+
 ];
 const router = new Router({
     routes: routes,
