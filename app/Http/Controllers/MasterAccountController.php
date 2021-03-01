@@ -42,23 +42,15 @@ class MasterAccountController extends Controller
      */
     public function store(MasterAccountCreateRequest $request)
     {
-        // if ($request->has('profile_img')) {
-        //     $filename = $request->profile_img->getClientOriginalName();
-        //     $destinationPath = public_path() . '/uploads';
-        //     $request->profile_img->move($destinationPath, $request->profile_img->getClientOriginalName());
-        //     $request->profile_img = $filename;
-        // }
-        if ($request->hasFile('profile_img')) {
-            $image = $request->file('profile_img');
-            $request->profile_img = Storage::disk()->put('images', $image);
-        }
+        $profile_img_path = ($request->hasFile('profile_img')) ? Storage::disk()->put('images', $request->file('profile_img')) : "";
         try {
-            $masterAccount = MasterAccount::create($request->except('profile_img'));
+            $masterAccount = MasterAccount::create(array_merge($request->except('profile_img'), [
+                "profile_img" => $profile_img_path,
+            ]));
+            return ApiResponse::create($masterAccount);
         } catch (\Exception $e) {
             return ApiResponse::createServerError($e);
         }
-
-        return ApiResponse::create($masterAccount);
     }
 
     /**
@@ -78,9 +70,35 @@ class MasterAccountController extends Controller
      * @param  \App\Models\MasterAccount  $masterAccount
      * @return \Illuminate\Http\Response
      */
-    public function edit(MasterAccount $masterAccount)
+    public function edit($id)
     {
-        //
+        try {
+            $account = MasterAccount::find($id);
+            $type = $account->account_type_id;
+            if ($type == MasterAccount::BANK_ACCOUNT) {
+                $data = $account->only(['name', 'branch', 'ifsc']);
+            } else if ($type == MasterAccount::CASH_ACCOUNT) {
+                $data = $account->only(['name']);
+            } else if (
+                $type == MasterAccount::PARTY_ACCOUNT ||
+                $type == MasterAccount::INDIVIDUAL_ACCOUNT ||
+                $type == MasterAccount::PARTNER_ACCOUNT
+            ) {
+                $data = $account->only([
+                    'name', 'middle_name', 'last_name', 'email', 'pan_no', 'gst_no'
+                ]);
+            } else {
+                $data = $account->only([
+                    'name', 'middle_name', 'last_name', 'email', 'profile_img', 'dob', 'doj', 'mobile_no', 'emergency_no', 'address', 'ctc', 'position', 'pan_no', 'pan_img', 'aadhar_no', 'aadhar_img'
+                ]);
+            }
+        } catch (\Exception $e) {
+            return ApiResponse::createServerError($e);
+        }
+
+        return ApiResponse::create([
+            "masterAccount" => $data,
+        ]);
     }
 
     /**
@@ -90,9 +108,26 @@ class MasterAccountController extends Controller
      * @param  \App\Models\MasterAccount  $masterAccount
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, MasterAccount $masterAccount)
+    public function update(Request $request, $id)
     {
-        return ApiResponse::create($masterAccount);
+        try {
+            $profile_img_path = ($request->hasFile('profile_img')) ? Storage::disk()->put('images', $request->file('profile_img')) : "";
+            $account = MasterAccount::find($id);
+            if ($profile_img_path != "") {
+                if ($account->profile_img && Storage::disk()->exists($account->profile_img)) {
+                    @Storage::disk()->delete($account->profile_img);
+                }
+            }
+            MasterAccount::where('id', $id)->update(
+                array_merge($request->except('profile_img', '_method'), [
+                    "profile_img" => $profile_img_path,
+                ])
+            );
+        } catch (\Exception $e) {
+            return ApiResponse::createServerError($e);
+        }
+
+        return ApiResponse::__create("Account update successfully.");
     }
 
     /**

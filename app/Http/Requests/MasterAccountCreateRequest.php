@@ -63,12 +63,24 @@ class MasterAccountCreateRequest extends StepRequest
                         'name'                      =>  'required',
                         'email'                     =>   'required|email',
                         'mobile_no'                 =>  'required',
-                        'profile_img'               =>  'sometimes|image|mimes:jpg,bmp,png',
-                        'aadhar_img'               =>  'sometimes|image|mimes:jpg,bmp,png',
-                        'pan_img'                   =>  'sometimes|image|mimes:jpg,bmp,png'
-
                     ]
                 );
+
+                $files = [
+                    'profile_img',
+                    'aadhar_img',
+                    'pan_img'
+                ];
+                foreach ($files as $file) {
+                    if ($this->hasFile($file) && $this->$file != "") {
+                        $rules = array_merge(
+                            $rules,
+                            [
+                                $file =>  'mimes:jpg,bmp,png,jpeg',
+                            ]
+                        );
+                    }
+                }
                 break;
             default:
                 # code...

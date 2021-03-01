@@ -31,7 +31,10 @@
                   :error-messages="selectErrors"
                   label="Select Type"
                   required
-                  @change="$v.accountType.$touch()"
+                  @change="
+                    $v.accountType.$touch();
+                    clear();
+                  "
                   @blur="$v.accountType.$touch()"
                 ></v-select>
               </v-container>
@@ -383,7 +386,6 @@ export default {
       name: "",
       middle_name: "",
       last_name: "",
-      profile_img: null,
       email: "",
       dob: null,
       doj: null,
@@ -393,9 +395,7 @@ export default {
       ctc: "",
       position: "",
       pan_no: "",
-      pan_img: null,
       aadhar_no: "",
-      aadhar_img: null,
     },
     employee: {
       name: "",
@@ -486,7 +486,6 @@ export default {
       this.$http
         .get("masteraccounts")
         .then((response) => {
-          console.log(response);
           const masterAccounts = response.data.data.masterAccounts;
           this.masterAccounts = [];
           masterAccounts.forEach((element) => {
@@ -496,7 +495,40 @@ export default {
               type: element.account_type.name,
             });
           });
-          //   console.log(this.masterAccounts);
+          this.isLoading = false;
+        })
+        .catch((error) => {
+          console.log("error", error);
+          this.isLoading = false;
+        });
+    },
+
+    fetchEditItem(id) {
+      this.$http
+        .get("masteraccounts/" + id + "/edit")
+        .then((response) => {
+          const editAccount = response.data.data.masterAccount;
+          switch (this.accountType) {
+            case 1: {
+              this.bank = JSON.parse(JSON.stringify(editAccount));
+              break;
+            }
+            case 2:
+              this.cash = JSON.parse(JSON.stringify(editAccount));
+              break;
+            case 3:
+            case 4:
+            case 5: {
+              this.party = JSON.parse(JSON.stringify(editAccount));
+              break;
+            }
+            case 6: {
+              this.employee = JSON.parse(JSON.stringify(editAccount));
+              break;
+            }
+            default:
+              break;
+          }
           this.isLoading = false;
         })
         .catch((error) => {
@@ -506,11 +538,12 @@ export default {
     },
 
     editItem(item) {
-      console.log(item);
+      this.fetchEditItem(item.id);
       this.accountType = this.accountTypes.find(
         (type) => type.text === item.type
       );
-      this.editedIndex = this.masterAccounts.indexOf(item);
+      this.accountType = this.accountType.value;
+      this.editedIndex = item.id;
       this.name = item.name;
       this.email = item.email;
       this.editedItem = Object.assign({}, item);
@@ -518,15 +551,13 @@ export default {
     },
 
     deleteItem(item) {
-      console.log(item);
-      this.editedIndex = this.masterAccounts.indexOf(item);
+      this.editedIndex = item.id;
       this.deleteAccount = item;
       this.editedItem = Object.assign({}, item);
       this.dialogDelete = true;
     },
 
     deleteItemConfirm() {
-      console.log(this.deleteAccount);
       this.deleteMasterAccount(this.deleteAccount);
       this.masterAccounts.splice(this.editedIndex, 1);
       this.closeDelete();
@@ -534,6 +565,7 @@ export default {
 
     close() {
       this.dialog = false;
+      this.clear();
       this.$nextTick(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
@@ -549,14 +581,7 @@ export default {
       });
     },
 
-    save() {
-      this.$v.$touch();
-      //   let formData = new FormData();
-      //   console.log(this.$refs);
-      //   for( var i = 0; i < this.$refs.file.files.length; i++ ){
-      //     let file = this.$refs.file.files[i];
-      //     formData.append('files[' + i + ']', file);
-      // }
+    prepareFormData() {
       var data = new FormData();
       switch (this.accountType) {
         case 1: {
@@ -568,29 +593,33 @@ export default {
           ) {
             return;
           }
-          data = bankDetails;
-          data.account_type_id = this.accountType;
-          console.log("bank");
+          data.append("name", bankDetails.name);
+          if(bankDetails.branch) data.append("branch", bankDetails.branch);
+          if(bankDetails.ifsc) data.append("ifsc", bankDetails.ifsc);
+
           break;
         }
         case 2:
           if (this.cash.name == "") {
             return;
           }
-          data = this.cash;
-          data.account_type_id = this.accountType;
-          console.log("cash");
+          data.append("name", this.cash.name);
           break;
         case 3:
         case 4:
         case 5: {
-          const partyDetails = this.party;
+          var partyDetails = this.party;
           if (partyDetails.name == "" || partyDetails.email == "") {
             return;
           }
-          data = partyDetails;
-          data.account_type_id = this.accountType;
-          console.log("3,4,5");
+            partyDetails = this.cleanData(partyDetails);
+
+           data.append("name", partyDetails.name);
+           data.append("middle_name", partyDetails.middle_name);
+           data.append("last_name", partyDetails.last_name);
+           data.append("email", partyDetails.email);
+           data.append("pan_no", partyDetails.pan_no);
+           data.append("gst_no", partyDetails.gst_no);
           break;
         }
         case 6: {
@@ -602,26 +631,48 @@ export default {
           ) {
             return;
           }
-          data.append('profile_img',this.profile_img);
-          data.append("name",employeeDetails.name);
-          data.append("email",employeeDetails.email);
-          data.append("mobile_no",employeeDetails.mobile_no);
-          data.append("account_type_id",this.accountType);
+          data.append("profile_img", this.profile_img);
+          data.append("name", employeeDetails.name);
+          data.append("middle_name", employeeDetails.middle_name);
+          data.append("last_name", employeeDetails.last_name);
+          data.append("email", employeeDetails.email);
+          if (employeeDetails.dob) data.append("dob", employeeDetails.dob);
+          if (employeeDetails.doj) data.append("doj", employeeDetails.doj);
+          data.append("mobile_no", employeeDetails.mobile_no);
+          data.append("emergency_no", employeeDetails.emergency_no);
+          data.append("address", employeeDetails.address);
+          if (employeeDetails.ctc) data.append("ctc", employeeDetails.ctc);
+          data.append("position", employeeDetails.position);
+          data.append("pan_no", employeeDetails.pan_no);
+          data.append("aadhar_no", employeeDetails.aadhar_no);
 
-
-          console.log("employee", data);
-        //   data.account_type_id = this.accountType;
           break;
         }
         default:
           break;
       }
-      //   formData.append(data);
-      const config = {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      };
+      data.append("account_type_id", this.accountType);
+      return data;
+    },
+
+    cleanData(data, exceptkeys = {}){
+        for (const property in data) {
+            data[property] = (data[property]!=null && data[property]!="") ? data[property] : "";
+        }
+        return data;
+    },
+
+    save() {
+      this.$v.$touch();
+      var data = this.prepareFormData();
+      if (this.editedIndex > -1) {
+        this.updateAccount(data);
+      } else {
+        this.saveAccount(data);
+      }
+    },
+
+    saveAccount(data) {
       this.$http
         .post("masteraccounts", data)
         .then((response) => {
@@ -630,7 +681,22 @@ export default {
             this.clear();
             this.fetchMasterAccounts();
           }
-          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+
+    updateAccount(data) {
+      data.append("_method", "PUT");
+      this.$http
+        .post("masteraccounts/" + this.editedIndex, data)
+        .then((response) => {
+          if (response.data.status === 200) {
+            this.close();
+            this.clear();
+            this.fetchMasterAccounts();
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -641,22 +707,21 @@ export default {
       this.$http
         .delete("masteraccounts/" + item.id)
         .then((response) => {
-          console.log(response);
           this.fetchMasterAccounts();
         })
         .catch((error) => {
           console.log(error);
         });
     },
-
     clear() {
-      console.log("clear");
+      this.bank = JSON.parse(JSON.stringify(this.defaultBank));
+      this.cash = JSON.parse(JSON.stringify(this.defaultCash));
+      this.party = JSON.parse(JSON.stringify(this.defaultParty));
+      this.employee = JSON.parse(JSON.stringify(this.defaultEmployee));
+      this.profile_img = null;
+      this.pan_img = null;
+      this.aadhar_img = null;
       this.$v.$reset();
-      this.accountType = null;
-      this.bank = this.defaultBank;
-      this.cash = this.defaultCash;
-      this.party = this.defaultParty;
-      this.employee = this.defaultEmployee;
     },
   },
 };
