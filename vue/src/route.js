@@ -8,6 +8,7 @@ import Login from "./components/auth/Login";
 import Account from './components/account/Account'
 import Transaction from './components/transaction/Transaction'
 import Branch from './components/branch/Branch'
+import AssignAccount from './components/account/AssignAccount'
 
 let routes = [
     {
@@ -34,6 +35,11 @@ let routes = [
                 path: '/transactions',
                 name: 'transactions',
                 component: Transaction
+            },
+            {
+                path: '/assign-account',
+                name: 'assign-account',
+                component: AssignAccount
             }
         ]
     },

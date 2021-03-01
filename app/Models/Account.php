@@ -11,10 +11,14 @@ class Account extends Model
     protected $guarded = [];
 
     public function accountType(){
-        return $this->belongsTo(AccountType::class, 'type');
+        return $this->belongsTo(AccountType::class);
     }
 
-    public function user(){
-        return $this->hasOne(User::class);
+    public function branch(){
+        return $this->belongsTo(Branch::class);
+    }
+
+    public function masterAccount(){
+        return $this->belongsTo(MasterAccount::class);
     }
 }

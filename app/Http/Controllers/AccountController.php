@@ -5,15 +5,17 @@ namespace App\Http\Controllers;
 use App\Http\Responses\ApiResponse;
 use App\Models\Account;
 use App\Models\AccountType;
+use App\Models\MasterAccount;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AccountController extends Controller
 {
     public function getAccountTypes()
     {
         $accountType = AccountType::all();
-        return ApiResponse::create([ "accountType" => $accountType]);
+        return ApiResponse::create(["accountType" => $accountType]);
     }
     /**
      * Display a listing of the resource.
@@ -22,7 +24,7 @@ class AccountController extends Controller
      */
     public function index()
     {
-        $accounts = Account::with('accountType', 'user')->get();
+        $accounts = Account::with('branch', 'masterAccount', 'accountType')->get();
 
         return ApiResponse::create([
             "accounts" => $accounts
@@ -48,30 +50,21 @@ class AccountController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'type' => 'required',
-            'name' => 'required',
-            'email' => 'required',
-            'password' => 'required'
+            'branch_id' => 'required',
+            'master_account_id' => 'required',
         ]);
-        try{
+        try {
+            $accountType = MasterAccount::find($request->master_account_id)->account_type_id;
             $account = Account::create([
-                'type' => $request->type,
-                'name' => $request->name
-                ]);
-            $user = new User([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'account_id' => $account->id,
+                'branch_id' => $request->branch_id,
+                'master_account_id' => $request->master_account_id,
+                'account_type_id' => $accountType
             ]);
-
-            $user->save();
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return ApiResponse::createServerError($e);
         }
 
         return ApiResponse::create($account);
-
     }
 
     /**
@@ -103,9 +96,16 @@ class AccountController extends Controller
      * @param  \App\Models\Account  $account
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Account $account)
+    public function update(Request $request, $id)
     {
-        //
+        try {
+            Account::whereId($id)->update($request->only([
+                'branch_id', 'master_account_id'
+            ]));
+        } catch (\Exception $e) {
+            return ApiResponse::createServerError($e);
+        }
+        return ApiResponse::__create("Account updated successfully");
     }
 
     /**
@@ -114,8 +114,14 @@ class AccountController extends Controller
      * @param  \App\Models\Account  $account
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Account $account)
+    public function destroy($id)
     {
-        //
+        try {
+            $account = Account::find($id);
+            $account->delete();
+        } catch (\Exception $e) {
+            return ApiResponse::createServerError($e);
+        }
+        return ApiResponse::__create("Account deleted successfully");
     }
 }
