@@ -20,11 +20,11 @@ class CreateChequesTable extends Migration
             $table->string('from');
             $table->string('to');
             $table->float('amount', 9, 2);
-            $table->tinyInteger('status')->comment("0 => Pending, 1 => Cleared, 2 => Bounced");
-            $table->timestamp('deposited_at');
-            $table->timestamp('cleared_at');
-            $table->timestamp('bounced_at');
-
+            $table->tinyInteger('status')->comment("0 => Pending, 1 => Cleared, 2 => Bounced")->default(0);
+            $table->timestamp('deposited_at')->nullable();
+            $table->timestamp('cleared_at')->nullable();
+            $table->timestamp('bounced_at')->nullable();
+            $table->timestamps();
         });
     }
 

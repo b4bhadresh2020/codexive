@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Responses\ApiResponse;
 use App\Models\Account;
+use App\Models\Cheque;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -50,9 +52,20 @@ class TransactionController extends Controller
     {
         $invoice_path = ($request->hasFile('invoice_img')) ? Storage::disk()->put('images', $request->file('invoice_img')) : "";
         try {
-            Transaction::create(array_merge($request->except('invoice_img'), [
+            $transaction = Transaction::create(array_merge($request->except('invoice_img'), [
                 "invoice_img" => $invoice_path,
             ]));
+
+            //If transaction type is cheque
+            if ($request->transaction_type == 1) {
+                Cheque::create([
+                    'transaction_id' => $transaction->id,
+                    'from' => $transaction->from_account_id,
+                    'to' => $transaction->to_account_id,
+                    'amount' => $transaction->amount,
+                    'deposited_at' => $transaction->cheque_deposited_date,
+                ]);
+            }
         } catch (\Exception $e) {
             return ApiResponse::createServerError($e);
         }
