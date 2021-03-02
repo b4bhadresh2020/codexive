@@ -31,7 +31,7 @@ Route::group(['prefix' => 'auth'], function () {
     // })->middleware('groups:admin');
 
 
-    Route::group(['middleware' => 'auth:api'], function() {
+    Route::group(['middleware' => 'auth:api'], function () {
         Route::get('logout', [AuthController::class, 'logout']);
         Route::get('user', [AuthController::class, 'user']);
     });
@@ -41,5 +41,5 @@ Route::resource('accounts', AccountController::class);
 
 Route::resource('masteraccounts', MasterAccountController::class);
 Route::resource('transactions', TransactionController::class);
-
+Route::post('typed/accounts', [TransactionController::class, 'getAccounts']);
 Route::resource('branches', BranchController::class);

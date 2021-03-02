@@ -22,7 +22,10 @@ class CreateTransactionsTable extends Migration
             $table->tinyInteger('transaction_type')->comment("0 => Cash, 1 => Cheque, 2 => Transfer, 3 => Forex");
             $table->float('amount', 9, 2);
             $table->string('notes')->nullable();
+            $table->timestamp('date')->nullable();
             $table->string('invoice_img')->nullable();
+            $table->string('cheque_no')->nullable();
+            $table->timestamp('cheque_deposited_date')->nullable();
             $table->string('transfer_no')->nullable();
             $table->string('bank_name')->nullable();
             $table->timestamps();

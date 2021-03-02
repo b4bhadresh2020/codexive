@@ -3,7 +3,7 @@
   <v-data-table
     :headers="headers"
     :items="masterAccounts"
-    sort-by="calories"
+    sort-by="name"
     class="elevation-1"
     :loading="isLoading"
   >

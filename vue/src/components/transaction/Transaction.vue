@@ -1,449 +1,608 @@
 <template>
   <div class="mr-4 ml-4 mt-4">
-    <v-toolbar  color="white">
-      <v-toolbar-title>My CRUD</v-toolbar-title>
-      <v-divider
-        class="mx-2"
-        inset
-        vertical
-      ></v-divider>
-      <v-spacer></v-spacer>
-      <v-dialog v-model="dialog" max-width="50%">
-        <template v-slot:activator="{ on }">
-          <v-btn color="primary" dark class="mb-2" v-on="on">New Transaction</v-btn>
-        </template>
-        <v-card>
-          <v-card-title>
-            <span class="headline">{{ formTitle }}</span>
-          </v-card-title>
+    <v-data-table :headers="headers" :items="transactions" class="elevation-1">
+      <template v-slot:top>
+        <v-toolbar color="white">
+          <v-toolbar-title>Transactions</v-toolbar-title>
+          <v-divider class="mx-2" inset vertical></v-divider>
+          <v-spacer></v-spacer>
+          <v-dialog v-model="dialog" max-width="50%">
+            <template v-slot:activator="{ on }">
+              <v-btn color="primary" dark class="mb-2" v-on="on"
+                >New Transaction</v-btn
+              >
+            </template>
+            <v-card>
+              <v-card-title>
+                <span class="headline">{{ formTitle }}</span>
+              </v-card-title>
 
-          <v-card-text>
+              <v-card-text>
                 <v-form>
-                    <v-container grid-list-md>
-                        <v-row>
-                            <v-col cols="12" md="6">
-                                <v-select
-                                v-model="account"
-                                :items="accounts"
-                                label="Select Account Type"
-                                :error-messages="selectErrors"
-                                @change="$v.account.$touch()"
-                                @blur="$v.account.$touch()"
-                                required
+                  <v-container grid-list-md>
+                    <v-row>
+                      <v-col cols="12" md="6">
+                        <p class="font-weight-bold">Credit to</p>
+                        <v-select
+                          v-model="toAccountType"
+                          :items="accountTypes"
+                          label="Select Account Type"
+                          :error-messages="toAccountTypeErrors"
+                          @input="fetchTypedAccounts(toAccountType, 'to')"
+                          @change="$v.toAccountType.$touch()"
+                          @blur="$v.toAccountType.$touch()"
+                          required
+                        ></v-select>
+                        <v-select
+                          v-model="toAccount"
+                          :items="toAccounts"
+                          label="Select Account"
+                          required
+                        ></v-select>
+                      </v-col>
 
-                                ></v-select>
-                                <v-select
-                                v-model="account"
-                                :items="accounts"
-                                label="Select Account"
-                                required
+                      <v-col cols="12" md="6">
+                        <p class="font-weight-bold">Debit from</p>
+                        <v-select
+                          v-model="fromAccountType"
+                          :items="accountTypes"
+                          label="Select Account Type"
+                          @input="fetchTypedAccounts(fromAccountType, 'from')"
+                          required
+                        ></v-select>
+                        <v-select
+                          v-model="fromAccount"
+                          :items="fromAccounts"
+                          label="Select Account"
+                          required
+                        ></v-select>
+                      </v-col>
+                    </v-row>
 
-                                ></v-select>
-                            </v-col>
+                    <!-- RADIO -->
+                    <v-row>
+                      <v-col cols="12" md="12">
+                        <v-radio-group
+                          v-model="transactionType"
+                          :mandatory="false"
+                          class="ml-4 mr-4"
+                          @change="clearRadioInputs"
+                        >
+                          <v-layout>
+                            <v-flex>
+                              <v-radio
+                                label="Cash"
+                                :value="0"
+                                color="blue"
+                              ></v-radio>
+                            </v-flex>
+                            <v-flex>
+                              <v-radio
+                                label="cheque"
+                                :value="1"
+                                color="blue"
+                              ></v-radio>
+                            </v-flex>
+                            <v-flex>
+                              <v-radio
+                                label="Transfer"
+                                :value="2"
+                                color="blue"
+                              ></v-radio>
+                            </v-flex>
+                            <v-flex>
+                              <v-radio
+                                label="Forex"
+                                :value="3"
+                                color="blue"
+                              ></v-radio>
+                            </v-flex>
+                          </v-layout>
+                        </v-radio-group>
+                      </v-col>
+                    </v-row>
 
-                            <v-col cols="12" md="6">
-                                <v-select
-                                v-model="account"
-                                :items="accounts"
-                                label="Select Account Type"
-                                required
+                    <!-- chequeShow -->
+                    <v-row v-if="transactionType == 1">
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                          v-model="chequeNo"
+                          label="Cheque No"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                          v-model="bankName"
+                          label="Bank Name"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-menu
+                          v-model="chequeMenu"
+                          :close-on-content-click="false"
+                          :nudge-right="40"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                              v-model="depositedDate"
+                              label="Deposited Date"
+                              prepend-icon="mdi-calendar"
+                              readonly
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker
+                            v-model="depositedDate"
+                            @input="chequeMenu = false"
+                          ></v-date-picker>
+                        </v-menu>
+                      </v-col>
+                    </v-row>
 
-                                ></v-select>
-                                <v-select
-                                v-model="account"
-                                :items="accounts"
-                                label="Select Account"
-                                required
+                    <!-- tfShow -->
+                    <v-row v-else-if="transactionType == 2">
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                          v-model="transferNo"
+                          label="Transfer No"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                          v-model="bankName"
+                          label="Bank Name"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
 
-                                ></v-select>
-                            </v-col>
-                        </v-row>
+                    <!-- forexShow -->
+                    <v-row v-else-if="transactionType == 3">
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                          v-model="transferNo"
+                          label="Forex Transfer No"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="6">
+                        <v-text-field
+                          v-model="bankName"
+                          label="Bank Name"
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
 
-                        <!-- RADIO -->
-                        <v-row>
-                            <v-col cols="12" md="12">
-                                    <v-radio-group v-model="radioList" :mandatory="false" class="ml-4 mr-4" >
-                                        <v-layout>
-                                        <v-flex>
-                                        <v-radio label="Cash" :value="0" @change="caseShowDiv()" color="blue"></v-radio>
-                                        </v-flex>
-                                        <v-flex>
-                                        <v-radio label="cheque" :value="1" @change="chequeShowDiv()" color="blue"></v-radio>
-                                        </v-flex>
-                                        <v-flex>
-                                        <v-radio label="TF" :value="3" @change="TFshowDiv()" color="blue"></v-radio>
-                                        </v-flex>
-                                        <v-flex>
-                                        <v-radio label="Forex" :value="4" @change="ForexShowDiv()" color="blue"></v-radio>
-                                        </v-flex>
-                                            </v-layout>
-                                    </v-radio-group>
-                            </v-col>
-                        </v-row>
+                    <v-row>
+                      <v-col cols="12" md="4">
+                        <v-text-field
+                          label="Amount"
+                          v-model.number="amount"
+                          prefix="₹"
+                          type="number"
+                          min="0"
+                          :error-messages="amountErrors"
+                          @change="$v.amount.$touch()"
+                          @blur="$v.amount.$touch()"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-file-input
+                          accept="image/png, image/jpeg, image/bmp, application/pdf"
+                          v-model="invoiceImg"
+                          label="Invoice Image"
+                          counter
+                          truncate-length="25"
+                        ></v-file-input>
+                      </v-col>
+                      <v-col cols="12" md="4">
+                        <v-menu
+                          v-model="menu"
+                          :close-on-content-click="false"
+                          :nudge-right="40"
+                          transition="scale-transition"
+                          offset-y
+                          min-width="auto"
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-text-field
+                              v-model="date"
+                              label="Date"
+                              prepend-icon="mdi-calendar"
+                              readonly
+                              v-bind="attrs"
+                              v-on="on"
+                            ></v-text-field>
+                          </template>
+                          <v-date-picker
+                            v-model="date"
+                            @input="menu = false"
+                          ></v-date-picker>
+                        </v-menu>
+                      </v-col>
 
-                        <!-- chequeShow -->
-                        <v-row v-if="chequeShow">
-                                <v-col cols="12" md="4">
-                                        <v-text-field v-model="editedItem.name" label="Cheque No"></v-text-field>
-                                </v-col>
-                                <v-col cols="12" md="4">
-
-                                    <v-text-field v-model="editedItem.name" label="bank Name"></v-text-field>
-                                </v-col>
-                                <v-col cols="12" md="4">
-                                    <v-menu
-                                        ref="menu"
-                                        v-model="menu"
-                                        :close-on-content-click="false"
-                                        :return-value.sync="date"
-                                        transition="scale-transition"
-                                        offset-y
-                                        min-width="auto"
-                                    >
-                                        <template v-slot:activator="{ on, attrs }">
-                                        <v-text-field
-                                            v-model="date"
-                                            label="Picker in menu"
-                                            prepend-icon="mdi-calendar"
-                                            readonly
-                                            v-bind="attrs"
-                                            v-on="on"
-                                        ></v-text-field>
-                                        </template>
-                                        <v-date-picker
-                                        v-model="date"
-                                        no-title
-                                        scrollable
-                                        >
-                                        <v-spacer></v-spacer>
-                                        <v-btn
-                                            text
-                                            color="primary"
-                                            @click="menu = false"
-                                        >
-                                            Cancel
-                                        </v-btn>
-                                        <v-btn
-                                            text
-                                            color="primary"
-                                            @click="$refs.menu.save(date)"
-                                        >
-                                            OK
-                                        </v-btn>
-                                        </v-date-picker>
-                                    </v-menu>
-                                </v-col>
-                        </v-row>
-
-                        <!-- tfShow -->
-                        <v-row  v-if="tfShow">
-                                <v-col cols="12" md="6">
-                                    <v-text-field v-model="editedItem.name" label="Transfer No"></v-text-field>
-                                </v-col>
-                                 <v-col cols="12" md="6">
-                                    <v-text-field v-model="editedItem.name" label="Bank Name"></v-text-field>
-                                </v-col>
-                        </v-row>
-
-                        <!-- forexShow -->
-                        <v-row  v-if="forexShow">
-                                <v-col cols="12" md="6">
-                                    <v-text-field v-model="editedItem.name" label="forex TF No"></v-text-field>
-                                </v-col>
-                                 <v-col cols="12" md="6">
-                                    <v-text-field v-model="editedItem.name" label="Bank Name"></v-text-field>
-                                </v-col>
-                        </v-row>
-
-                        <v-row >
-                                <v-col cols="12" md="4">
-                                    <v-text-field    label="Amount"
-                                    v-model.number="amount"
-                                    prefix="₹"
-                                    type="number"
-                                    min="0"
-                                    :error-messages="amountErrors"
-                                    @change="$v.amount.$touch()"
-                                    @blur="$v.amount.$touch()" v-model="editedItem.amount"></v-text-field>
-                                </v-col>
-                                <v-col cols="12" md="4">
-                                     <v-file-input
-                                    counter
-                                    truncate-length="1"
-                                    ></v-file-input>
-                                </v-col>
-                                <v-col cols="12" md="4">
-                                    <v-menu
-                                        ref="menu"
-                                        v-model="menu"
-                                        :close-on-content-click="false"
-                                        :return-value.sync="date"
-                                        transition="scale-transition"
-                                        offset-y
-                                        min-width="auto"
-                                    >
-                                        <template v-slot:activator="{ on, attrs }">
-                                        <v-text-field
-                                            v-model="date"
-                                            label="Date"
-                                            prepend-icon="mdi-calendar"
-                                            readonly
-                                            v-bind="attrs"
-                                            v-on="on"
-                                        ></v-text-field>
-                                        </template>
-                                        <v-date-picker
-                                        v-model="date"
-                                        no-title
-                                        scrollable
-                                        >
-                                        <v-spacer></v-spacer>
-                                        <v-btn
-                                            text
-                                            color="primary"
-                                            @click="menu = false"
-                                        >
-                                            Cancel
-                                        </v-btn>
-                                        <v-btn
-                                            text
-                                            color="primary"
-                                            @click="$refs.menu.save(date)"
-                                        >
-                                            OK
-                                        </v-btn>
-                                        </v-date-picker>
-                                    </v-menu>
-                                </v-col>
-
-                                <v-row >
-                                    <v-col cols="12" md="12">
-                                            <v-textarea
-                                                outlined
-                                                name="note"
-                                                label="note"
-                                                value=""
-                                            ></v-textarea>
-                                    </v-col>
-                                </v-row>
-                        </v-row>
-                    </v-container>
+                      <v-row>
+                        <v-col cols="12" md="12">
+                          <v-textarea
+                            v-model="note"
+                            outlined
+                            name="note"
+                            label="note"
+                            clearable
+                          ></v-textarea>
+                        </v-col>
+                      </v-row>
+                    </v-row>
+                  </v-container>
                 </v-form>
-          </v-card-text>
+              </v-card-text>
 
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-            <v-btn color="blue darken-1" text @click="save">Save</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-toolbar>
-    <v-data-table
-      :headers="headers"
-      :items="desserts"
-      class="elevation-1"
-    >
-      <template v-slot:items="props">
-        <td class="text-xs-right">{{ props.item.account}}</td>
-        <td class="text-xs-right">{{ props.item.type}}</td>
-        <td class="text-xs-right">{{ props.item.amount}}</td>
-        <td class="text-xs-right">{{ props.item.notes}}</td>
-        <td class="justify-center layout px-0">
-          <v-icon
-            small
-            class="mr-2"
-            @click="editItem(props.item)"
-          >
-            edit
-          </v-icon>
-          <v-icon
-            small
-            @click="deleteItem(props.item)"
-          >
-            delete
-          </v-icon>
-        </td>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
+                <v-btn color="blue darken-1" text @click="save">Save</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="dialogDelete" max-width="500px">
+            <v-card>
+              <v-card-title class="headline"
+                >Are you sure you want to delete this item?</v-card-title
+              >
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="closeDelete"
+                  >Cancel</v-btn
+                >
+                <v-btn color="blue darken-1" text @click="deleteItemConfirm"
+                  >OK</v-btn
+                >
+                <v-spacer></v-spacer>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>
+        <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
       </template>
       <template v-slot:no-data>
-        <v-btn color="primary" @click="initialize">Reset</v-btn>
+        <p>No data available.</p>
       </template>
     </v-data-table>
   </div>
 </template>
 <script>
-  import { validationMixin } from 'vuelidate'
-  import { required } from 'vuelidate/lib/validators'
-  export default {
-      mixins: [validationMixin],
-       validations: {
-        account: { required },
-        transactionType: { required },
-        amount: { required },
+import { validationMixin } from "vuelidate";
+import { required } from "vuelidate/lib/validators";
+export default {
+  mixins: [validationMixin],
+  validations: {
+    account: { required },
+    toAccountType: { required },
+    transactionType: { required },
+    amount: { required },
+  },
+  beforeMount() {
+    this.fetchAccountTypes();
+  },
+  data: () => ({
+    dialog: false,
+    headers: [
+      {
+        text: "To Account",
+        align: "start",
+        value: "toAccount",
+      },
+      {
+        text: "From Account",
+        value: "fromAccount",
+      },
+      { text: "Type", value: "type" },
+      { text: "Amount", value: "amount" },
+      { text: "Notes", value: "notes" },
+      { text: "Actions", value: "actions", sortable: false },
+    ],
+    desserts: [],
+    editedIndex: -1,
+    editedItem: {
+      name: "",
+      calories: 0,
+      fat: 0,
+      carbs: 0,
+      protein: 0,
     },
-    beforeMount(){
-        this.$http.get("accounts").then((response) => {
-            console.log(response);
-            const accounts = response.data.data.accounts;
-            this.accounts = [];
-            accounts.forEach((element) => {
-            this.accounts.push({ text: element.name, value: element.id });
+    defaultItem: {
+      name: "",
+      calories: 0,
+      fat: 0,
+      carbs: 0,
+      protein: 0,
+    },
+    accountTypes: [],
+    toAccountType: null,
+    fromAccountType: null,
+    toAccounts: [],
+    toAccount: null,
+    fromAccounts: [],
+    fromAccount: null,
+    account: null,
+    chequeNo: "",
+    bankName: "",
+    chequeMenu: false,
+    depositedDate: "",
+    transferNo: "",
+    amount: null,
+    invoiceImg: null,
+    note: "",
+    transactions: [],
+    chequeShow: false,
+    tfShow: false,
+    forexShow: false,
+    transactionType: 0,
+    date: new Date().toISOString().substr(0, 10),
+    menu: false,
+    modal: false,
+    menu2: false,
+    dialogDelete: false,
+    deleteAccount: null,
+  }),
+
+  computed: {
+    toAccountTypeErrors() {
+      const errors = [];
+      if (!this.$v.toAccountType.$dirty) return errors;
+      !this.$v.toAccountType.required && errors.push("Account is required");
+      return errors;
+    },
+    transactionErrors() {
+      const errors = [];
+      if (!this.$v.transactionType.$dirty) return errors;
+      !this.$v.transactionType.required &&
+        errors.push("Transaction Type is required");
+      return errors;
+    },
+    amountErrors() {
+      const errors = [];
+      if (!this.$v.amount.$dirty) return errors;
+      !this.$v.amount.required && errors.push("Amount must be greater than 0");
+      return errors;
+    },
+    formTitle() {
+      return this.editedIndex === -1 ? "Add Transaction" : "Edit Transaction";
+    },
+  },
+
+  watch: {
+    dialog(val) {
+      val || this.close();
+    },
+    dialogDelete(val) {
+      val || this.closeDelete();
+    },
+  },
+
+  created() {
+    this.initialize();
+  },
+
+  methods: {
+    initialize() {
+      this.$http
+        .get("transactions")
+        .then((response) => {
+          console.log(response);
+          const transactions = response.data.data.transactions;
+          this.transactions = [];
+          transactions.forEach((element) => {
+            this.transactions.push({
+              id: element.id,
+              toAccount: element.to_account.master_account.name,
+              toAccountTypeId: element.to_account.account_type_id,
+              fromAccount: element.from_account.master_account.name,
+              fromAccountTypeId: element.from_account.account_type_id,
+              type: element.transaction_type,
+              amount: element.amount,
+              notes: element.notes,
+              bankName: element.bank_name || "",
+              chequeNo: element.cheque_no || "",
+              transferNo: element.transfer_no || "",
             });
-            console.log("accounts",this.accounts);
+          });
         })
         .catch((error) => {
-            console.log("error", error.response);
+          console.log("error", error.response);
         });
     },
-    data: () => ({
-      dialog: false,
-      headers: [
-        {
-            text: "Account",
-            align: "start",
-            value: "account",
-        },
-        { text: "Type", value: "type" },
-        { text: "Amount", value: "amount"},
-        { text: "Notes", value: "notes" },
-        { text: 'Actions', value: 'name', sortable: false }
-      ],
-      desserts: [],
-      editedIndex: -1,
-      editedItem: {
-        name: '',
-        calories: 0,
-        fat: 0,
-        carbs: 0,
-        protein: 0
-      },
-      defaultItem: {
-        name: '',
-        calories: 0,
-        fat: 0,
-        carbs: 0,
-        protein: 0
-      },
-      accounts: [],
-      account: null,
-      amount: null,
-      transactions :{
 
-            account: '',
-            name: '',
-            type: '',
-            amount: '',
-            notes: '',
-            invoice_img:'',
-            transfer_n0:'',
-            bank_name:'',
-
-
-      },
-      chequeShow:false,
-      tfShow:false,
-      forexShow:false,
-      radioList:0,
-      debitRadioList:0,
-      date: new Date().toISOString().substr(0, 10),
-      menu: false,
-      modal: false,
-      menu2: false,
-    }),
-
-
-    computed: {
-      selectErrors () {
-        const errors = []
-        if (!this.$v.account.$dirty) return errors
-        !this.$v.account.required && errors.push('Account is required')
-        return errors
-      },
-     transactionErrors () {
-        const errors = []
-        if (!this.$v.transactionType.$dirty) return errors
-        !this.$v.transactionType.required && errors.push('Transaction Type is required')
-        return errors
-      },
-      amountErrors () {
-        const errors = []
-        if (!this.$v.amount.$dirty) return errors
-        !this.$v.amount.required && errors.push('Amount must be greater than 0')
-        return errors
-      },
-      formTitle () {
-        return this.editedIndex === -1 ? 'Add Transaction' : 'Edit Transaction'
-      }
+    fetchAccountTypes() {
+      this.$http
+        .get("account/types")
+        .then((response) => {
+          this.accountTypes = [];
+          const accountType = response.data.data.accountType;
+          accountType.forEach((element) => {
+            this.accountTypes.push({ value: element.id, text: element.name });
+          });
+        })
+        .catch((error) => {
+          console.log("error", error.response);
+        });
     },
 
-    watch: {
-      dialog (val) {
-        val || this.close()
-      }
-    },
-
-    created () {
-      this.initialize()
-    },
-
-    methods: {
-        initialize(){
-            this.$http.get("transactions").then((response) => {
-            console.log(response);
-            const transactions = response.data.data.transactions;
-            this.transactions = [];
-            transactions.forEach((element) => {
-                this.transactions.push({ account: element.account.name, type: element.type, amount: element.amount, notes: element.notes });
-                });
-            })
-            .catch((error) => {
-                console.log("error", error.response);
+    fetchTypedAccounts(type, flag) {
+      const data = {
+        accountTypeId: type,
+      };
+      this.$http
+        .post("typed/accounts", data)
+        .then((response) => {
+          const accountType = response.data.data.accounts;
+          if (flag == "to") {
+            this.toAccounts = [];
+            accountType.forEach((element) => {
+              this.toAccounts.push({
+                value: element.id,
+                text: element.master_account.name,
+              });
             });
-        },
-      editItem (item) {
-        this.editedIndex = this.desserts.indexOf(item)
-        this.editedItem = Object.assign({}, item)
-        this.dialog = true
-      },
-      deleteItem (item) {
-        const index = this.desserts.indexOf(item)
-        confirm('Are you sure you want to delete this item?') && this.desserts.splice(index, 1)
-      },
-      close () {
-        this.dialog = false
-        setTimeout(() => {
-          this.editedItem = Object.assign({}, this.defaultItem)
-          this.editedIndex = -1
-        }, 300)
-      },
-      save () {
-        if (this.editedIndex > -1) {
-          Object.assign(this.desserts[this.editedIndex], this.editedItem)
-        } else {
-          this.desserts.push(this.editedItem)
-        }
-        this.close()
-      },
-      chequeShowDiv(){
-            this.chequeShow=true;
-      },
-      TFshowDiv(){
-            this.tfShow=true;
-            this.chequeShow=false;
-            this.forexShow=false;
-      },
-      ForexShowDiv(){
-          console.log("chequeShowForex");
-            this.forexShow=true;
-            this.tfShow=false;
-            this.chequeShow=false;
+          } else {
+            this.fromAccounts = [];
+            accountType.forEach((element) => {
+              this.fromAccounts.push({
+                value: element.id,
+                text: element.master_account.name,
+              });
+            });
+          }
+        })
+        .catch((error) => {
+          console.log("error", error.response);
+        });
+    },
 
-      },
-      caseShowDiv(){
-          this.forexShow=false;
-            this.tfShow=false;
-            this.chequeShow=false;
-      },
-    }
-  }
+    editItem(item) {
+      console.log(item);
+      this.editedIndex = item.id;
+      this.fromAccountType = this.accountTypes.find(
+        (type) => type.value === item.fromAccountTypeId
+      );
+      this.fetchTypedAccounts(this.fromAccountType.value, "from");
+
+      this.toAccountType = this.accountTypes.find(
+        (type) => type.value === item.toAccountTypeId
+      );
+      this.fetchTypedAccounts(this.toAccountType.value, "to");
+      console.log(this.fromAccounts, "from");
+      //   this.fromAccount = this.fromAccounts.find(
+      //     (type) => type.text === item.fromAccount
+      //   );
+      this.amount = item.amount;
+      this.note = item.notes;
+      this.transactionType = item.type;
+      if (item.chequeNo != "") this.chequeNo = item.chequeNo;
+      if (item.transferNo != "") this.transferNo = item.transferNo;
+      if (item.bankName != "") this.bankName = item.bankName;
+      this.editedItem = Object.assign({}, item);
+      this.dialog = true;
+    },
+    deleteItem(item) {
+      this.editedIndex = item.id;
+      this.deleteAccount = item;
+      this.editedItem = Object.assign({}, item);
+      this.dialogDelete = true;
+    },
+    close() {
+      this.dialog = false;
+      this.clear();
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+    closeDelete() {
+      this.dialogDelete = false;
+      this.deleteAccount = null;
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+      });
+    },
+    deleteItemConfirm() {
+      this.deleteTransaction(this.deleteAccount);
+      //   this.masterAccounts.splice(this.editedIndex, 1);
+      this.closeDelete();
+    },
+    save() {
+      var data = new FormData();
+      data.append("from_account_id", this.fromAccount);
+      data.append("to_account_id", this.toAccount);
+      data.append("transaction_type", this.transactionType);
+      data.append("amount", this.amount);
+      if (this.invoiceImg != null) data.append("invoice_img", this.invoiceImg);
+      data.append("date", this.date);
+      data.append("notes", this.note);
+      if (this.chequeNo != "") data.append("cheque_no", this.chequeNo);
+      if (this.bankName != "") data.append("bank_name", this.bankName);
+      if (this.depositedDate != "") data.append("cheque_deposited_date", this.depositedDate);
+      if (this.transferNo != "") data.append("transfer_no", this.transferNo);
+
+      if (this.editedIndex > -1) {
+        this.updateTransaction(data);
+      } else {
+        this.saveTransaction(data);
+      }
+    },
+    saveTransaction(data) {
+      this.$http
+        .post("transactions", data)
+        .then((response) => {
+          if (response.data.status === 200) {
+            this.close();
+            this.initialize();
+          }
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log("error", error.response);
+        });
+    },
+    updateTransaction(data) {
+      console.log(this.editedIndex);
+        data.append("_method", "PUT");
+        this.$http
+          .post("transactions/" + this.editedIndex, data)
+          .then((response) => {
+              console.log(response);
+            if (response.data.status === 200) {
+              this.close();
+              this.clear();
+              this.initialize();
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
+    clearRadioInputs() {
+      this.chequeNo = "";
+      this.bankName = "";
+      this.depositedDate = "";
+      this.transferNo = "";
+    },
+    deleteTransaction(item) {
+      console.log(item);
+      this.$http
+        .delete("transactions/" + item.id)
+        .then((response) => {
+          console.log(response);
+          this.initialize();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    clear() {
+      this.toAccountType = null;
+      this.fromAccountType = null;
+      this.toAccounts = [];
+      this.toAccount = null;
+      this.fromAccounts = [];
+      this.fromAccount = null;
+      this.account = null;
+      this.chequeNo = "";
+      this.bankName = "";
+      this.chequeMenu = false;
+      this.depositedDate = "";
+      this.transferNo = "";
+      this.amount = null;
+      this.invoiceImg = null;
+      this.note = "";
+      this.$v.$reset();
+    },
+  },
+};
 </script>
