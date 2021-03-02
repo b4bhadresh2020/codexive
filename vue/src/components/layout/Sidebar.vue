@@ -42,8 +42,8 @@
             { title: 'Branch', icon: 'mdi-account-supervisor', link: '/branches'},
             { title: 'Master Accounts', icon: 'mdi-view-dashboard', link: '/accounts' },
             { title: 'Asssign Account', icon: 'mdi-pencil', link: '/assign-account'},
-            { title: 'Transactions', icon: 'mdi-image', link: '/transactions' },
-            { title: 'About', icon: 'mdi-help-box', link: '/accounts2' },
+            { title: 'Transactions', icon: 'mdi-bank-transfer', link: '/transactions' },
+            { title: 'Expenses', icon: 'mdi-cash-multiple', link: '/expense' },
         ],
         right: null,
       }

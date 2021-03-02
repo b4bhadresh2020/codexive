@@ -1,15 +1,15 @@
 <template>
   <div class="mr-4 ml-4 mt-4">
-    <v-data-table :headers="headers" :items="transactions" class="elevation-1">
+    <v-data-table :headers="headers" :items="expenses" class="elevation-1">
       <template v-slot:top>
         <v-toolbar color="white">
-          <v-toolbar-title>Transactions</v-toolbar-title>
+          <v-toolbar-title>Expenses</v-toolbar-title>
           <v-divider class="mx-2" inset vertical></v-divider>
           <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="50%">
             <template v-slot:activator="{ on }">
               <v-btn color="primary" dark class="mb-2" v-on="on"
-                >New Transaction</v-btn
+                >Add Expense</v-btn
               >
             </template>
             <v-card>
@@ -20,44 +20,27 @@
               <v-card-text>
                 <v-form>
                   <v-container grid-list-md>
-                    <v-row>
-                      <v-col cols="12" md="6">
-                        <p class="font-weight-bold">Credit to</p>
-                        <v-select
-                          v-model="toAccountType"
-                          :items="accountTypes"
-                          label="Select Account Type"
-                          :error-messages="toAccountTypeErrors"
-                          @input="fetchTypedAccounts(toAccountType, 'to')"
-                          @change="$v.toAccountType.$touch()"
-                          @blur="$v.toAccountType.$touch()"
-                          required
-                        ></v-select>
-                        <v-select
-                          v-model="toAccount"
-                          :items="toAccounts"
-                          label="Select Account"
-                          required
-                        ></v-select>
-                      </v-col>
-
-                      <v-col cols="12" md="6">
-                        <p class="font-weight-bold">Debit from</p>
-                        <v-select
-                          v-model="fromAccountType"
-                          :items="accountTypes"
-                          label="Select Account Type"
-                          @input="fetchTypedAccounts(fromAccountType, 'from')"
-                          required
-                        ></v-select>
-                        <v-select
-                          v-model="fromAccount"
-                          :items="fromAccounts"
-                          label="Select Account"
-                          required
-                        ></v-select>
-                      </v-col>
-                    </v-row>
+                    <p class="font-weight-bold">Expense from</p>
+                    <v-select
+                      v-model="accountType"
+                      :items="accountTypes"
+                      :error-messages="accountTypeErrors"
+                      label="Select Account Type"
+                      @input="fetchTypedAccounts(accountType)"
+                      required
+                    ></v-select>
+                    <v-select
+                      v-model="account"
+                      :items="accounts"
+                      label="Select Account"
+                      required
+                    ></v-select>
+                    <v-select
+                      v-model="expenseType"
+                      :items="expenseTypes"
+                      label="Select Expense Type"
+                      required
+                    ></v-select>
 
                     <!-- RADIO -->
                     <v-row>
@@ -268,6 +251,9 @@
       <template v-slot:[`item.type`]="{ item }">
         {{ getTransactionType(item.type) }}
       </template>
+      <template v-slot:[`item.expenseType`]="{ item }">
+        {{ getExpenseType(item.expenseType) }}
+      </template>
       <template v-slot:[`item.actions`]="{ item }">
         <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>
         <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
@@ -285,54 +271,35 @@ export default {
   mixins: [validationMixin],
   validations: {
     account: { required },
-    toAccountType: { required },
+    accountType: { required },
     transactionType: { required },
     amount: { required },
   },
   beforeMount() {
     this.fetchAccountTypes();
+    this.fetchExpenseTypes();
   },
   data: () => ({
     dialog: false,
     headers: [
       {
-        text: "To Account",
-        align: "start",
-        value: "toAccount",
-      },
-      {
         text: "From Account",
-        value: "fromAccount",
+        align: "start",
+        value: "account",
       },
-      { text: "Type", value: "type" },
+      { text: "Transaction Type", value: "type" },
+      { text: "Expense Type", value: "expenseType" },
       { text: "Amount", value: "amount" },
       { text: "Notes", value: "notes" },
       { text: "Actions", value: "actions", sortable: false },
     ],
-    desserts: [],
     editedIndex: -1,
-    editedItem: {
-      name: "",
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
-    },
-    defaultItem: {
-      name: "",
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
-    },
     accountTypes: [],
-    toAccountType: null,
-    fromAccountType: null,
-    toAccounts: [],
-    toAccount: null,
-    fromAccounts: [],
-    fromAccount: null,
+    accountType: null,
+    accounts: [],
     account: null,
+    expenseTypes: [],
+    expenseType: null,
     chequeNo: "",
     bankName: "",
     chequeMenu: false,
@@ -341,7 +308,7 @@ export default {
     amount: null,
     invoiceImg: null,
     note: "",
-    transactions: [],
+    expenses: [],
     chequeShow: false,
     tfShow: false,
     forexShow: false,
@@ -355,10 +322,10 @@ export default {
   }),
 
   computed: {
-    toAccountTypeErrors() {
+    accountTypeErrors() {
       const errors = [];
-      if (!this.$v.toAccountType.$dirty) return errors;
-      !this.$v.toAccountType.required && errors.push("Account is required");
+      if (!this.$v.accountType.$dirty) return errors;
+      !this.$v.accountType.required && errors.push("Account is required");
       return errors;
     },
     transactionErrors() {
@@ -375,7 +342,7 @@ export default {
       return errors;
     },
     formTitle() {
-      return this.editedIndex === -1 ? "Add Transaction" : "Edit Transaction";
+      return this.editedIndex === -1 ? "Add Expense" : "Edit Expense";
     },
   },
 
@@ -395,18 +362,16 @@ export default {
   methods: {
     initialize() {
       this.$http
-        .get("transactions")
+        .get("expenses")
         .then((response) => {
-          console.log(response);
-          const transactions = response.data.data.transactions;
-          this.transactions = [];
-          transactions.forEach((element) => {
-            this.transactions.push({
+          const expenses = response.data.data.expenses;
+          this.expenses = [];
+          expenses.forEach((element) => {
+            this.expenses.push({
               id: element.id,
-              toAccount: element.to_account.master_account.name,
-              toAccountTypeId: element.to_account.account_type_id,
-              fromAccount: element.from_account.master_account.name,
-              fromAccountTypeId: element.from_account.account_type_id,
+              account: element.account.master_account.name,
+              accountType: element.account.account_type_id,
+              expenseType: element.expense_type_id,
               type: element.transaction_type,
               amount: element.amount,
               notes: element.notes,
@@ -436,7 +401,22 @@ export default {
         });
     },
 
-    fetchTypedAccounts(type, flag) {
+    fetchExpenseTypes() {
+      this.$http
+        .get("expense/types")
+        .then((response) => {
+          this.expenseTypes = [];
+          const expenseTypes = response.data.data.expenseType;
+          expenseTypes.forEach((element) => {
+            this.expenseTypes.push({ value: element.id, text: element.name });
+          });
+        })
+        .catch((error) => {
+          console.log("error", error.response);
+        });
+    },
+
+    fetchTypedAccounts(type) {
       const data = {
         accountTypeId: type,
       };
@@ -444,23 +424,13 @@ export default {
         .post("typed/accounts", data)
         .then((response) => {
           const accountType = response.data.data.accounts;
-          if (flag == "to") {
-            this.toAccounts = [];
-            accountType.forEach((element) => {
-              this.toAccounts.push({
-                value: element.id,
-                text: element.master_account.name,
-              });
+          this.accounts = [];
+          accountType.forEach((element) => {
+            this.accounts.push({
+              value: element.id,
+              text: element.master_account.name,
             });
-          } else {
-            this.fromAccounts = [];
-            accountType.forEach((element) => {
-              this.fromAccounts.push({
-                value: element.id,
-                text: element.master_account.name,
-              });
-            });
-          }
+          });
         })
         .catch((error) => {
           console.log("error", error.response);
@@ -470,39 +440,30 @@ export default {
     editItem(item) {
       console.log(item);
       this.editedIndex = item.id;
-      this.fromAccountType = this.accountTypes.find(
-        (type) => type.value === item.fromAccountTypeId
+      this.accountType = this.accountTypes.find(
+        (type) => type.value === item.accountType
       );
-      this.fetchTypedAccounts(this.fromAccountType.value, "from");
 
-      this.toAccountType = this.accountTypes.find(
-        (type) => type.value === item.toAccountTypeId
+      this.expenseType = this.expenseTypes.find(
+        (type) => type.value === item.expenseType
       );
-      this.fetchTypedAccounts(this.toAccountType.value, "to");
-      console.log(this.fromAccounts, "from");
-      //   this.fromAccount = this.fromAccounts.find(
-      //     (type) => type.text === item.fromAccount
-      //   );
       this.amount = item.amount;
       this.note = item.notes;
       this.transactionType = item.type;
       if (item.chequeNo != "") this.chequeNo = item.chequeNo;
       if (item.transferNo != "") this.transferNo = item.transferNo;
       if (item.bankName != "") this.bankName = item.bankName;
-      this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
     deleteItem(item) {
       this.editedIndex = item.id;
       this.deleteAccount = item;
-      this.editedItem = Object.assign({}, item);
       this.dialogDelete = true;
     },
     close() {
       this.dialog = false;
       this.clear();
       this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
     },
@@ -510,19 +471,17 @@ export default {
       this.dialogDelete = false;
       this.deleteAccount = null;
       this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
       });
     },
     deleteItemConfirm() {
       this.deleteTransaction(this.deleteAccount);
-      //   this.masterAccounts.splice(this.editedIndex, 1);
       this.closeDelete();
     },
     save() {
       var data = new FormData();
-      data.append("from_account_id", this.fromAccount);
-      data.append("to_account_id", this.toAccount);
+      data.append("account_id", this.account);
+      data.append("expense_type_id", this.expenseType);
       data.append("transaction_type", this.transactionType);
       data.append("amount", this.amount);
       if (this.invoiceImg != null) data.append("invoice_img", this.invoiceImg);
@@ -542,25 +501,22 @@ export default {
     },
     saveTransaction(data) {
       this.$http
-        .post("transactions", data)
+        .post("expenses", data)
         .then((response) => {
           if (response.data.status === 200) {
             this.close();
             this.initialize();
           }
-          console.log(response);
         })
         .catch((error) => {
           console.log("error", error.response);
         });
     },
     updateTransaction(data) {
-      console.log(this.editedIndex);
       data.append("_method", "PUT");
       this.$http
-        .post("transactions/" + this.editedIndex, data)
+        .post("expenses/" + this.editedIndex, data)
         .then((response) => {
-          console.log(response);
           if (response.data.status === 200) {
             this.close();
             this.clear();
@@ -578,31 +534,31 @@ export default {
       this.transferNo = "";
     },
     deleteTransaction(item) {
-      console.log(item);
       this.$http
-        .delete("transactions/" + item.id)
+        .delete("expenses/" + item.id)
         .then((response) => {
-          console.log(response);
           this.initialize();
         })
         .catch((error) => {
           console.log(error);
         });
     },
+
     getTransactionType(id) {
       if (id === 0) return "Cash";
       if (id === 1) return "Cheque";
       if (id === 2) return "Transfer";
       if (id === 3) return "Forex";
     },
+    getExpenseType(id) {
+        const type = this.expenseTypes.find((type) => type.value == id);
+      return (type) ? type.text : '';
+    },
+
     clear() {
-      this.toAccountType = null;
-      this.fromAccountType = null;
-      this.toAccounts = [];
-      this.toAccount = null;
-      this.fromAccounts = [];
-      this.fromAccount = null;
-      this.account = null;
+      (this.accountType = null),
+        (this.expenseType = null),
+        (this.account = null);
       this.chequeNo = "";
       this.bankName = "";
       this.chequeMenu = false;

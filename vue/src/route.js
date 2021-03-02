@@ -9,6 +9,7 @@ import Account from './components/account/Account'
 import Transaction from './components/transaction/Transaction'
 import Branch from './components/branch/Branch'
 import AssignAccount from './components/account/AssignAccount'
+import Expense from './components/expense/Expense'
 
 let routes = [
     {
@@ -40,6 +41,11 @@ let routes = [
                 path: '/assign-account',
                 name: 'assign-account',
                 component: AssignAccount
+            },
+            {
+                path: '/expense',
+                name: 'expense',
+                component: Expense
             }
         ]
     },

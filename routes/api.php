@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\MasterAccountController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Http\Request;
@@ -42,4 +43,8 @@ Route::resource('accounts', AccountController::class);
 Route::resource('masteraccounts', MasterAccountController::class);
 Route::resource('transactions', TransactionController::class);
 Route::post('typed/accounts', [TransactionController::class, 'getAccounts']);
+
 Route::resource('branches', BranchController::class);
+
+Route::get('expense/types', [ExpenseController::class, 'getExpenseTypes']);
+Route::resource('expenses', ExpenseController::class);
