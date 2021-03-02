@@ -239,8 +239,10 @@ export default {
               this.fetchAccounts();
               this.close();
             }
+            this.$toast.success(response.data.data.message[0]);
           })
           .catch((error) => {
+            this.$toast.error("Something went wrong");
             console.log(error);
           });
       }
@@ -256,6 +258,7 @@ export default {
           }
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log(error);
         });
     },
@@ -267,6 +270,7 @@ export default {
           this.fetchAccounts();
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log(error);
         });
     },

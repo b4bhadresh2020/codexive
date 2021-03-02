@@ -494,25 +494,27 @@ export default {
       if (this.transferNo != "") data.append("transfer_no", this.transferNo);
 
       if (this.editedIndex > -1) {
-        this.updateTransaction(data);
+        this.updateExpense(data);
       } else {
-        this.saveTransaction(data);
+        this.saveExpense(data);
       }
     },
-    saveTransaction(data) {
+    saveExpense(data) {
       this.$http
         .post("expenses", data)
         .then((response) => {
           if (response.data.status === 200) {
             this.close();
             this.initialize();
+            this.$toast.success(response.data.data.message[0]);
           }
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log("error", error.response);
         });
     },
-    updateTransaction(data) {
+    updateExpense(data) {
       data.append("_method", "PUT");
       this.$http
         .post("expenses/" + this.editedIndex, data)
@@ -521,10 +523,12 @@ export default {
             this.close();
             this.clear();
             this.initialize();
+            this.$toast.success(response.data.data.message[0]);
           }
         })
         .catch((error) => {
           console.log(error);
+          this.$toast.error("Something went wrong");
         });
     },
     clearRadioInputs() {
@@ -538,8 +542,10 @@ export default {
         .delete("expenses/" + item.id)
         .then((response) => {
           this.initialize();
+          this.$toast.success(response.data.data.message[0]);
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log(error);
         });
     },
@@ -551,8 +557,8 @@ export default {
       if (id === 3) return "Forex";
     },
     getExpenseType(id) {
-        const type = this.expenseTypes.find((type) => type.value == id);
-      return (type) ? type.text : '';
+      const type = this.expenseTypes.find((type) => type.value == id);
+      return type ? type.text : "";
     },
 
     clear() {

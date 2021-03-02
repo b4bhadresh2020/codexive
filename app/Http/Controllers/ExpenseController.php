@@ -56,7 +56,7 @@ class ExpenseController extends Controller
             return ApiResponse::createServerError($e);
         }
 
-        return ApiResponse::create($expense);
+        return ApiResponse::__create("Expense Added Successfully.");
     }
 
     /**

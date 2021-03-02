@@ -1,298 +1,314 @@
 <template>
-<div class="mr-4 ml-4 mt-4">
-  <v-data-table
-    :headers="headers"
-    :items="masterAccounts"
-    sort-by="name"
-    class="elevation-1"
-    :loading="isLoading"
-  >
-    <template v-slot:top>
-      <v-toolbar >
-        <v-toolbar-title>Master Accounts</v-toolbar-title>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <v-spacer></v-spacer>
-        <v-dialog v-model="dialog" max-width="900px">
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">
-              New Account
-            </v-btn>
-          </template>
-          <v-card>
-            <v-card-title>
-              <span class="headline">{{ formTitle }}</span>
-            </v-card-title>
+  <div class="mr-4 ml-4 mt-4">
+    <v-data-table
+      :headers="headers"
+      :items="masterAccounts"
+      sort-by="id"
+      class="elevation-1"
+      :loading="isLoading"
+    >
+      <template v-slot:top>
+        <v-toolbar>
+          <v-toolbar-title>Master Accounts</v-toolbar-title>
+          <v-divider class="mx-4" inset vertical></v-divider>
+          <v-spacer></v-spacer>
+          <v-dialog v-model="dialog" max-width="900px">
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">
+                New Account
+              </v-btn>
+            </template>
+            <v-card>
+              <v-card-title>
+                <span class="headline">{{ formTitle }}</span>
+              </v-card-title>
 
-            <v-card-text>
-              <v-container>
-                <v-select
-                  v-model.number="accountType"
-                  :items="accountTypes"
-                  item-value="value"
-                  :error-messages="selectErrors"
-                  label="Select Type"
-                  required
-                  @change="
-                    $v.accountType.$touch();
-                    clear();
+              <v-card-text>
+                <v-container>
+                  <v-select
+                    v-model.number="accountType"
+                    :items="accountTypes"
+                    item-value="value"
+                    :error-messages="selectErrors"
+                    label="Select Type"
+                    required
+                    @change="
+                      $v.accountType.$touch();
+                      clear();
+                    "
+                    @blur="$v.accountType.$touch()"
+                  ></v-select>
+                </v-container>
+                <v-container v-if="accountType === 1">
+                  <v-text-field v-model.trim="bank.name" label="Bank Name">
+                    <v-icon slot="append" color="black"> mdi-pencil </v-icon>
+                  </v-text-field>
+                  <v-text-field v-model.trim="bank.branch" label="Branch Name">
+                    <v-icon slot="append" color="black"> mdi-pencil </v-icon>
+                  </v-text-field>
+                  <v-text-field v-model.trim="bank.ifsc" label="IFSC">
+                    <v-icon slot="append" color="black"> mdi-pencil </v-icon>
+                  </v-text-field>
+                </v-container>
+                <v-container v-if="accountType === 2">
+                  <v-text-field v-model.trim="cash.name" label="Account Name">
+                    <v-icon slot="append" color="black"> mdi-pencil </v-icon>
+                  </v-text-field>
+                </v-container>
+                <v-container
+                  v-if="
+                    accountType === 3 || accountType === 4 || accountType === 5
                   "
-                  @blur="$v.accountType.$touch()"
-                ></v-select>
-              </v-container>
-              <v-container v-if="accountType === 1">
-                <v-text-field v-model.trim="bank.name" label="Bank Name">
-                  <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                </v-text-field>
-                <v-text-field v-model.trim="bank.branch" label="Branch Name">
-                  <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                </v-text-field>
-                <v-text-field v-model.trim="bank.ifsc" label="IFSC">
-                  <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                </v-text-field>
-              </v-container>
-              <v-container v-if="accountType === 2">
-                <v-text-field v-model.trim="cash.name" label="Account Name">
-                  <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                </v-text-field>
-              </v-container>
-              <v-container
-                v-if="
-                  accountType === 3 || accountType === 4 || accountType === 5
-                "
-              >
-                <v-row>
-                  <v-col cols="12" md="4">
-                    <v-text-field v-model.trim="party.name" label="First name">
-                      <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                    </v-text-field>
-                  </v-col>
+                >
+                  <v-row>
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model.trim="party.name"
+                        label="First name"
+                      >
+                        <v-icon slot="append" color="black">
+                          mdi-pencil
+                        </v-icon>
+                      </v-text-field>
+                    </v-col>
 
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model.trim="party.middle_name"
-                      label="Middle name"
-                    ></v-text-field>
-                  </v-col>
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model.trim="party.middle_name"
+                        label="Middle name"
+                      ></v-text-field>
+                    </v-col>
 
-                  <v-col cols="12" md="4">
-                    <v-text-field
-                      v-model.trim="party.last_name"
-                      label="Last Name"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-                <v-text-field v-model.trim="party.email" label="E-mail">
-                  <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                </v-text-field>
+                    <v-col cols="12" md="4">
+                      <v-text-field
+                        v-model.trim="party.last_name"
+                        label="Last Name"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-text-field v-model.trim="party.email" label="E-mail">
+                    <v-icon slot="append" color="black"> mdi-pencil </v-icon>
+                  </v-text-field>
 
-                <v-text-field
-                  v-model.trim="party.pan_no"
-                  label="PAN"
-                ></v-text-field>
-                <v-text-field
-                  v-model.trim="party.gst_no"
-                  label="GST No."
-                ></v-text-field>
-              </v-container>
-              <v-container v-if="accountType === 6">
-                <v-row>
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model.trim="employee.name"
-                      label="First name"
-                    >
-                      <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                    </v-text-field>
-                  </v-col>
+                  <v-text-field
+                    v-model.trim="party.pan_no"
+                    label="PAN"
+                  ></v-text-field>
+                  <v-text-field
+                    v-model.trim="party.gst_no"
+                    label="GST No."
+                  ></v-text-field>
+                </v-container>
+                <v-container v-if="accountType === 6">
+                  <v-row>
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                        v-model.trim="employee.name"
+                        label="First name"
+                      >
+                        <v-icon slot="append" color="black">
+                          mdi-pencil
+                        </v-icon>
+                      </v-text-field>
+                    </v-col>
 
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model.trim="employee.middle_name"
-                      label="Middle name"
-                    ></v-text-field>
-                  </v-col>
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                        v-model.trim="employee.middle_name"
+                        label="Middle name"
+                      ></v-text-field>
+                    </v-col>
 
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model.trim="employee.last_name"
-                      label="Last Name"
-                    ></v-text-field>
-                  </v-col>
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                        v-model.trim="employee.last_name"
+                        label="Last Name"
+                      ></v-text-field>
+                    </v-col>
 
-                  <v-col cols="12" md="3">
-                    <v-file-input
-                      ref="file"
-                      v-model="profile_img"
-                      accept="image/png, image/jpeg, image/bmp"
-                      label="Profile Image"
-                      truncate-length="25"
-                    ></v-file-input>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-text-field v-model.trim="employee.email" label="E-mail">
-                      <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                    </v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="3">
-                    <v-menu
-                      v-model="dobMenu"
-                      :close-on-content-click="false"
-                      :nudge-right="40"
-                      transition="scale-transition"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
+                    <v-col cols="12" md="3">
+                      <v-file-input
+                        ref="file"
+                        v-model="profile_img"
+                        accept="image/png, image/jpeg, image/bmp"
+                        label="Profile Image"
+                        truncate-length="25"
+                      ></v-file-input>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.trim="employee.email"
+                        label="E-mail"
+                      >
+                        <v-icon slot="append" color="black">
+                          mdi-pencil
+                        </v-icon>
+                      </v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                      <v-menu
+                        v-model="dobMenu"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        transition="scale-transition"
+                        offset-y
+                        min-width="auto"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                            v-model="employee.dob"
+                            label="Date of Birth"
+                            prepend-icon="mdi-calendar"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-date-picker
                           v-model="employee.dob"
-                          label="Date of Birth"
-                          prepend-icon="mdi-calendar"
-                          readonly
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="employee.dob"
-                        @input="dobMenu = false"
-                      ></v-date-picker>
-                    </v-menu>
-                  </v-col>
-                  <v-col cols="12" md="3">
-                    <v-menu
-                      v-model="dojMenu"
-                      :close-on-content-click="false"
-                      :nudge-right="40"
-                      transition="scale-transition"
-                      offset-y
-                      min-width="auto"
-                    >
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-text-field
+                          @input="dobMenu = false"
+                        ></v-date-picker>
+                      </v-menu>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                      <v-menu
+                        v-model="dojMenu"
+                        :close-on-content-click="false"
+                        :nudge-right="40"
+                        transition="scale-transition"
+                        offset-y
+                        min-width="auto"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                            v-model="employee.doj"
+                            label="Date of Joining"
+                            prepend-icon="mdi-calendar"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-date-picker
                           v-model="employee.doj"
-                          label="Date of Joining"
-                          prepend-icon="mdi-calendar"
-                          readonly
-                          v-bind="attrs"
-                          v-on="on"
-                        ></v-text-field>
-                      </template>
-                      <v-date-picker
-                        v-model="employee.doj"
-                        @input="dojMenu = false"
-                      ></v-date-picker>
-                    </v-menu>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model.trim="employee.mobile_no"
-                      label="Mobile No."
-                    >
-                      <v-icon slot="append" color="black"> mdi-pencil </v-icon>
-                    </v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model.trim="employee.emergency_no"
-                      label="Emergency Mobile No."
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model.trim="employee.address"
-                      label="Address"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model.trim="employee.ctc"
-                      label="CTC"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="3">
-                    <v-text-field
-                      v-model.trim="employee.position"
-                      label="Position"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
+                          @input="dojMenu = false"
+                        ></v-date-picker>
+                      </v-menu>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.trim="employee.mobile_no"
+                        label="Mobile No."
+                      >
+                        <v-icon slot="append" color="black">
+                          mdi-pencil
+                        </v-icon>
+                      </v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.trim="employee.emergency_no"
+                        label="Emergency Mobile No."
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.trim="employee.address"
+                        label="Address"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                        v-model.trim="employee.ctc"
+                        label="CTC"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="3">
+                      <v-text-field
+                        v-model.trim="employee.position"
+                        label="Position"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
 
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model.trim="employee.pan_no"
-                      label="PAN"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-file-input
-                      accept="image/png, image/jpeg, image/bmp"
-                      v-model="pan_img"
-                      label="PAN image"
-                      truncate-length="25"
-                    ></v-file-input>
-                  </v-col>
-                </v-row>
-                <v-row>
-                  <v-col cols="12" md="6">
-                    <v-text-field
-                      v-model.trim="employee.aadhar_no"
-                      label="Aadhar No."
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-file-input
-                      accept="image/png, image/jpeg, image/bmp"
-                      v-model="aadhar_img"
-                      label="Aadhar image"
-                      truncate-length="25"
-                    ></v-file-input>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.trim="employee.pan_no"
+                        label="PAN"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-file-input
+                        accept="image/png, image/jpeg, image/bmp"
+                        v-model="pan_img"
+                        label="PAN image"
+                        truncate-length="25"
+                      ></v-file-input>
+                    </v-col>
+                  </v-row>
+                  <v-row>
+                    <v-col cols="12" md="6">
+                      <v-text-field
+                        v-model.trim="employee.aadhar_no"
+                        label="Aadhar No."
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <v-file-input
+                        accept="image/png, image/jpeg, image/bmp"
+                        v-model="aadhar_img"
+                        label="Aadhar image"
+                        truncate-length="25"
+                      ></v-file-input>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
 
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="close"> Cancel </v-btn>
-              <v-btn color="blue darken-1" text @click="save"> Save </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-        <v-dialog v-model="dialogDelete" max-width="500px">
-          <v-card>
-            <v-card-title class="headline"
-              >Are you sure you want to delete this item?</v-card-title
-            >
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="closeDelete"
-                >Cancel</v-btn
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="close">
+                  Cancel
+                </v-btn>
+                <v-btn color="blue darken-1" text @click="save"> Save </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="dialogDelete" max-width="500px">
+            <v-card>
+              <v-card-title class="headline"
+                >Are you sure you want to delete this item?</v-card-title
               >
-              <v-btn color="blue darken-1" text @click="deleteItemConfirm"
-                >OK</v-btn
-              >
-              <v-spacer></v-spacer>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-toolbar>
-    </template>
-    <template v-slot:[`item.actions`]="{ item }">
-      <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>
-      <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
-    </template>
-    <template v-slot:no-data>
-      <p>No data available.</p>
-    </template>
-  </v-data-table>
-</div>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="closeDelete"
+                  >Cancel</v-btn
+                >
+                <v-btn color="blue darken-1" text @click="deleteItemConfirm"
+                  >OK</v-btn
+                >
+                <v-spacer></v-spacer>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-toolbar>
+      </template>
+      <template v-slot:[`item.actions`]="{ item }">
+        <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>
+        <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
+      </template>
+      <template v-slot:no-data>
+        <p>No data available.</p>
+      </template>
+    </v-data-table>
+  </div>
 </template>
 
 
@@ -596,8 +612,8 @@ export default {
             return;
           }
           data.append("name", bankDetails.name);
-          if(bankDetails.branch) data.append("branch", bankDetails.branch);
-          if(bankDetails.ifsc) data.append("ifsc", bankDetails.ifsc);
+          if (bankDetails.branch) data.append("branch", bankDetails.branch);
+          if (bankDetails.ifsc) data.append("ifsc", bankDetails.ifsc);
 
           break;
         }
@@ -614,14 +630,14 @@ export default {
           if (partyDetails.name == "" || partyDetails.email == "") {
             return;
           }
-            partyDetails = this.cleanData(partyDetails);
+          partyDetails = this.cleanData(partyDetails);
 
-           data.append("name", partyDetails.name);
-           data.append("middle_name", partyDetails.middle_name);
-           data.append("last_name", partyDetails.last_name);
-           data.append("email", partyDetails.email);
-           data.append("pan_no", partyDetails.pan_no);
-           data.append("gst_no", partyDetails.gst_no);
+          data.append("name", partyDetails.name);
+          data.append("middle_name", partyDetails.middle_name);
+          data.append("last_name", partyDetails.last_name);
+          data.append("email", partyDetails.email);
+          data.append("pan_no", partyDetails.pan_no);
+          data.append("gst_no", partyDetails.gst_no);
           break;
         }
         case 6: {
@@ -647,6 +663,8 @@ export default {
           data.append("position", employeeDetails.position);
           data.append("pan_no", employeeDetails.pan_no);
           data.append("aadhar_no", employeeDetails.aadhar_no);
+          data.append("pan_img", this.pan_img);
+          data.append("aadhar_img", this.aadhar_img);
 
           break;
         }
@@ -657,11 +675,12 @@ export default {
       return data;
     },
 
-    cleanData(data, exceptkeys = {}){
-        for (const property in data) {
-            data[property] = (data[property]!=null && data[property]!="") ? data[property] : "";
-        }
-        return data;
+    cleanData(data, exceptkeys = {}) {
+      for (const property in data) {
+        data[property] =
+          data[property] != null && data[property] != "" ? data[property] : "";
+      }
+      return data;
     },
 
     save() {
@@ -683,8 +702,10 @@ export default {
             this.clear();
             this.fetchMasterAccounts();
           }
+          this.$toast.success(response.data.data.message[0]);
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log(error);
         });
     },
@@ -699,8 +720,10 @@ export default {
             this.clear();
             this.fetchMasterAccounts();
           }
+          this.$toast.success(response.data.data.message[0]);
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log(error);
         });
     },
@@ -710,8 +733,10 @@ export default {
         .delete("masteraccounts/" + item.id)
         .then((response) => {
           this.fetchMasterAccounts();
+          this.$toast.success(response.data.data.message[0]);
         })
         .catch((error) => {
+            this.$toast.error("Something went wrong");
           console.log(error);
         });
     },

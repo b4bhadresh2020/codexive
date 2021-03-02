@@ -64,7 +64,7 @@ class AccountController extends Controller
             return ApiResponse::createServerError($e);
         }
 
-        return ApiResponse::create($account);
+        return ApiResponse::__create("Account assigned successfully.");
     }
 
     /**
@@ -105,7 +105,7 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return ApiResponse::createServerError($e);
         }
-        return ApiResponse::__create("Account updated successfully");
+        return ApiResponse::__create("Assigned account updated successfully");
     }
 
     /**
@@ -122,6 +122,6 @@ class AccountController extends Controller
         } catch (\Exception $e) {
             return ApiResponse::createServerError($e);
         }
-        return ApiResponse::__create("Account deleted successfully");
+        return ApiResponse::__create("Assigned account deleted successfully");
     }
 }

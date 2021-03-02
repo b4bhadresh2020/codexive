@@ -480,9 +480,6 @@ export default {
       );
       this.fetchTypedAccounts(this.toAccountType.value, "to");
       console.log(this.fromAccounts, "from");
-      //   this.fromAccount = this.fromAccounts.find(
-      //     (type) => type.text === item.fromAccount
-      //   );
       this.amount = item.amount;
       this.note = item.notes;
       this.transactionType = item.type;
@@ -547,10 +544,12 @@ export default {
           if (response.data.status === 200) {
             this.close();
             this.initialize();
+            this.$toast.success(response.data.data.message[0]);
           }
           console.log(response);
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log("error", error.response);
         });
     },
@@ -565,9 +564,11 @@ export default {
             this.close();
             this.clear();
             this.initialize();
+            this.$toast.success(response.data.data.message[0]);
           }
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log(error);
         });
     },
@@ -584,8 +585,10 @@ export default {
         .then((response) => {
           console.log(response);
           this.initialize();
+          this.$toast.success(response.data.data.message[0]);
         })
         .catch((error) => {
+          this.$toast.error("Something went wrong");
           console.log(error);
         });
     },

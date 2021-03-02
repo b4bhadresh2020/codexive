@@ -113,9 +113,7 @@ class BranchController extends Controller
     public function update(Request $request, Branch $branch)
     {
         $validator = Validator::make($request->all(), [
-            'name'                      => 'required|string|unique:branches,name',
-        ], [
-            'name.unique'               => 'username already exist',
+            'name'  => 'required|string',
         ]);
 
         if ($validator->fails()) return ApiResponse::createValidationResponse($validator->errors());
@@ -134,7 +132,14 @@ class BranchController extends Controller
      */
     public function destroy(Branch $branch)
     {
+        DB::beginTransaction();
+
         $branch->delete();
+        $user = User::find($branch->user_id);
+        $user->delete();
+
+        DB::commit();
+
         return ApiResponse::__create("Branch deleted successfully");
 
     }

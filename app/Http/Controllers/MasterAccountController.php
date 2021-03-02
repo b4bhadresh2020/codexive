@@ -7,7 +7,6 @@ use App\Http\Responses\ApiResponse;
 use App\Models\MasterAccount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class MasterAccountController extends Controller
 {
@@ -42,15 +41,26 @@ class MasterAccountController extends Controller
      */
     public function store(MasterAccountCreateRequest $request)
     {
-        $profile_img_path = ($request->hasFile('profile_img')) ? Storage::disk()->put('images', $request->file('profile_img')) : "";
+        $files = [
+            'profile_img',
+            'aadhar_img',
+            'pan_img'
+        ];
+        $paths = [];
+        foreach ($files as $file) {
+            if ($request->hasFile($file) && $request->$file != "") {
+                $paths[$file] = Storage::disk()->put('images', $request->file($file));
+            } else {
+                $paths[$file] = "";
+            }
+        }
+
         try {
-            $masterAccount = MasterAccount::create(array_merge($request->except('profile_img'), [
-                "profile_img" => $profile_img_path,
-            ]));
-            return ApiResponse::create($masterAccount);
+            $masterAccount = MasterAccount::create(array_merge($request->except('profile_img','aadhar_img','pan_img'), $paths));
         } catch (\Exception $e) {
             return ApiResponse::createServerError($e);
         }
+        return ApiResponse::__create($masterAccount->name . " Account created successfully");
     }
 
     /**
@@ -111,17 +121,31 @@ class MasterAccountController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $profile_img_path = ($request->hasFile('profile_img')) ? Storage::disk()->put('images', $request->file('profile_img')) : "";
             $account = MasterAccount::find($id);
+
+            $files = [
+                'profile_img',
+                'aadhar_img',
+                'pan_img'
+            ];
+            $paths = [
+                'profile_img' => $account->profile_img,
+                'aadhar_img' => $account->aadhar_img,
+                'pan_img' => $account->pan_img
+            ];
+            foreach ($files as $file) {
+                if ($request->hasFile($file) && $request->$file != "") {
+                    $paths[$file] = Storage::disk()->put('images', $request->file($file));
+                }
+            }
+            $profile_img_path = ($request->hasFile('profile_img')) ? Storage::disk()->put('images', $request->file('profile_img')) : $account->profile_img;
             if ($profile_img_path != "") {
                 if ($account->profile_img && Storage::disk()->exists($account->profile_img)) {
                     @Storage::disk()->delete($account->profile_img);
                 }
             }
             MasterAccount::where('id', $id)->update(
-                array_merge($request->except('profile_img', '_method'), [
-                    "profile_img" => $profile_img_path,
-                ])
+                array_merge($request->except('profile_img', '_method'), $paths)
             );
         } catch (\Exception $e) {
             return ApiResponse::createServerError($e);

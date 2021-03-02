@@ -69,7 +69,7 @@ class TransactionController extends Controller
         } catch (\Exception $e) {
             return ApiResponse::createServerError($e);
         }
-        return ApiResponse::__create("transaction created successfully.");
+        return ApiResponse::__create("Transaction created successfully.");
     }
 
     /**
@@ -104,11 +104,11 @@ class TransactionController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $account = Transaction::find($id);
+            $transaction = Transaction::find($id);
             $invoice_path = ($request->hasFile('invoice_img')) ? Storage::disk()->put('images', $request->file('invoice_img')) : "";
             if ($invoice_path != "") {
-                if ($account->invoice_img && Storage::disk()->exists($account->invoice_img)) {
-                    @Storage::disk()->delete($account->invoice_img);
+                if ($transaction->invoice_img && Storage::disk()->exists($transaction->invoice_img)) {
+                    @Storage::disk()->delete($transaction->invoice_img);
                 }
             }
             Transaction::where('id', $id)->update(
@@ -120,7 +120,7 @@ class TransactionController extends Controller
             return ApiResponse::createServerError($e);
         }
 
-        return ApiResponse::__create("Account update successfully.");
+        return ApiResponse::__create("Transaction update successfully.");
     }
 
     /**

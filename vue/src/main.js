@@ -4,15 +4,25 @@ import vuetify from './plugins/vuetify';
 import vueRouter from 'vue-router';
 import axios from 'axios'
 import route from './route.js';
-// import ApiRequests from './apiRequests/apiRequest.js'
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
 
-// const plugin = {
-//     install () {
-//         Vue.ApiRequests = ApiRequests
-//         Vue.prototype.$ApiRequests = ApiRequests
-//     }
-// }
-// Vue.use(plugin);
+Vue.use(Toast, {
+  transition: "Vue-Toastification__bounce",
+  maxToasts: 20,
+  newestOnTop: true,
+  position: "top-right",
+  timeout: 5000,
+  closeOnClick: true,
+  pauseOnFocusLoss: true,
+  pauseOnHover: true,
+  draggable: true,
+  draggablePercent: 0.6,
+  showCloseButtonOnHover: true,
+  closeButton: "button",
+  icon: true,
+  rtl: false
+});
 
 Vue.use(vueRouter);
 

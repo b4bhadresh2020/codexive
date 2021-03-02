@@ -205,15 +205,16 @@ export default {
       this.dialogDelete = true;
     },
     deleteItemConfirm() {
-        this.$http
-          .delete("branches/" + this.editId)
-          .then((response) => {
-            console.log(response);
-            this.initialize();
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+      this.$http
+        .delete("branches/" + this.editId)
+        .then((response) => {
+          this.$toast.success(response.data.data.message[0]);
+          this.initialize();
+        })
+        .catch((error) => {
+          this.$toast.error("Something went wrong");
+          console.log(error);
+        });
       this.branches.splice(this.editedIndex, 1);
       this.closeDelete();
     },
@@ -236,8 +237,8 @@ export default {
     },
     save() {
       this.$v.$touch();
+      if (this.name === "" || this.email === "" || this.password === "") return;
       if (this.editedIndex > -1) {
-        console.log(this.name, this.email, this.password, this.editId);
         this.$http
           .put("branches/" + this.editId, {
             name: this.name,
@@ -245,13 +246,13 @@ export default {
             password: this.password,
           })
           .then((response) => {
-            console.log(response);
+            this.$toast.success(response.data.data.message[0]);
             this.initialize();
           })
           .catch((error) => {
+            this.$toast.error("Something went wrong");
             console.log(error);
           });
-        // Object.assign(this.branches[this.editedIndex], this.editedItem);
       } else {
         this.$http
           .post("branches", {
@@ -260,9 +261,11 @@ export default {
             password: this.password,
           })
           .then((response) => {
+            this.$toast.success(response.data.data.message[0]);
             this.initialize();
           })
           .catch((error) => {
+            this.$toast.error("Something went wrong");
             console.log(error);
           });
       }
