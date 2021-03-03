@@ -48,9 +48,9 @@ export default {
   data: () => ({
     drawer: null,
     user: {
-      initials: "JD",
-      fullName: "John Doe",
-      email: "john.doe@doe.com",
+      initials: "AD",
+      fullName: "Admin",
+      email: "admin@gmail.com",
     },
   }),
   components: {
