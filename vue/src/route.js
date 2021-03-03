@@ -10,6 +10,7 @@ import Transaction from './components/transaction/Transaction'
 import Branch from './components/branch/Branch'
 import AssignAccount from './components/account/AssignAccount'
 import Expense from './components/expense/Expense'
+import NotFound from './components/not-found/NotFound'
 
 let routes = [
     {
@@ -49,6 +50,10 @@ let routes = [
             }
         ]
     },
+    {
+      path: '/:notFound(.*)',
+      component: NotFound
+    }
 
 ];
 const router = new Router({
