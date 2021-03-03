@@ -144,7 +144,7 @@ export default {
           masterAccount.forEach((element) => {
             this.masterAccounts.push({
               value: element.id,
-              text: element.name,
+              text: this.getItemName(element),
               type: element.account_type.name,
             });
           });
@@ -168,13 +168,19 @@ export default {
         accounts.forEach((element) => {
           this.accounts.push({
             id: element.id,
-            name: element.master_account.name,
+            name: this.getItemName(element.master_account),
             type: element.account_type.name,
             branch: element.branch.name,
           });
         });
       });
     },
+
+     getItemName(item){
+        if(item.account_type_id == 1 && item.acc_number != null) return item.name + ' (' + item.acc_number.substring(item.acc_number.length - 4)  + ')';
+        return item.name;
+    },
+
     editItem(item) {
       this.isDisabled = true;
       this.masterAccount = this.masterAccounts.find(

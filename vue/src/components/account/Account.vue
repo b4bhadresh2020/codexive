@@ -40,6 +40,9 @@
                   ></v-select>
                 </v-container>
                 <v-container v-if="accountType === 1">
+                  <v-text-field v-model.trim="bank.acc_number" label="Bank Account Number">
+                    <v-icon slot="append" color="black"> mdi-pencil </v-icon>
+                  </v-text-field>
                   <v-text-field v-model.trim="bank.name" label="Bank Name">
                     <v-icon slot="append" color="black"> mdi-pencil </v-icon>
                   </v-text-field>
@@ -300,6 +303,9 @@
           </v-dialog>
         </v-toolbar>
       </template>
+      <template v-slot:[`item.name`]="{ item }">
+        {{ getItemName(item) }}
+      </template>
       <template v-slot:[`item.actions`]="{ item }">
         <v-icon small class="mr-2" @click="editItem(item)"> mdi-pencil </v-icon>
         <v-icon small @click="deleteItem(item)"> mdi-delete </v-icon>
@@ -372,11 +378,13 @@ export default {
       name: "",
       branch: "",
       ifsc: "",
+      acc_number: ""
     },
     bank: {
       name: "",
       branch: "",
       ifsc: "",
+      acc_number: ""
     },
     defaultCash: {
       name: "",
@@ -511,6 +519,8 @@ export default {
               id: element.id,
               name: element.name,
               type: element.account_type.name,
+              typeId: element.account_type_id,
+              acc_number: element.acc_number,
             });
           });
           this.isLoading = false;
@@ -553,6 +563,11 @@ export default {
           console.log("error", error);
           this.isLoading = false;
         });
+    },
+
+    getItemName(item){
+        if(item.typeId == 1 && item.acc_number != null) return item.name + ' (' + item.acc_number.substring(item.acc_number.length - 4)  + ')';
+        return item.name;
     },
 
     editItem(item) {
@@ -605,6 +620,7 @@ export default {
         case 1: {
           const bankDetails = this.bank;
           if (
+            bankDetails.acc_number == "" ||
             bankDetails.name == "" ||
             bankDetails.branch == "" ||
             bankDetails.ifsc == ""
@@ -614,6 +630,7 @@ export default {
           data.append("name", bankDetails.name);
           if (bankDetails.branch) data.append("branch", bankDetails.branch);
           if (bankDetails.ifsc) data.append("ifsc", bankDetails.ifsc);
+          if (bankDetails.acc_number) data.append("acc_number", bankDetails.acc_number);
 
           break;
         }
@@ -736,7 +753,7 @@ export default {
           this.$toast.success(response.data.data.message[0]);
         })
         .catch((error) => {
-            this.$toast.error("Something went wrong");
+          this.$toast.error("Something went wrong");
           console.log(error);
         });
     },

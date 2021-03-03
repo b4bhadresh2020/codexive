@@ -22,6 +22,22 @@
                   <v-container grid-list-md>
                     <v-row>
                       <v-col cols="12" md="6">
+                        <p class="font-weight-bold">Debit from</p>
+                        <v-select
+                          v-model="fromAccountType"
+                          :items="accountTypes"
+                          label="Select Account Type"
+                          @input="fetchTypedAccounts(fromAccountType, 'from')"
+                          required
+                        ></v-select>
+                        <v-select
+                          v-model="fromAccount"
+                          :items="fromAccounts"
+                          label="Select Account"
+                          required
+                        ></v-select>
+                      </v-col>
+                      <v-col cols="12" md="6">
                         <p class="font-weight-bold">Credit to</p>
                         <v-select
                           v-model="toAccountType"
@@ -40,26 +56,49 @@
                           required
                         ></v-select>
                       </v-col>
+                    </v-row>
 
-                      <v-col cols="12" md="6">
-                        <p class="font-weight-bold">Debit from</p>
-                        <v-select
-                          v-model="fromAccountType"
-                          :items="accountTypes"
-                          label="Select Account Type"
-                          @input="fetchTypedAccounts(fromAccountType, 'from')"
-                          required
-                        ></v-select>
-                        <v-select
-                          v-model="fromAccount"
-                          :items="fromAccounts"
-                          label="Select Account"
-                          required
-                        ></v-select>
+                    <!-- RADIO PURPOSE TYPE-->
+                    <v-row>
+                      <v-col cols="12" md="12">
+                        <v-radio-group
+                          v-model="purposeType"
+                          :mandatory="false"
+                          class="ml-4 mr-4"
+                        >
+                          <template v-slot:label>
+                            <div>
+                              <strong>Transaction Purpose</strong>
+                            </div>
+                          </template>
+                          <v-layout>
+                            <v-flex>
+                              <v-radio
+                                label="Normal"
+                                :value="0"
+                                color="blue"
+                              ></v-radio>
+                            </v-flex>
+                            <v-flex>
+                              <v-radio
+                                label="Salary"
+                                :value="1"
+                                color="blue"
+                              ></v-radio>
+                            </v-flex>
+                            <v-flex>
+                              <v-radio
+                                label="Upad"
+                                :value="2"
+                                color="blue"
+                              ></v-radio>
+                            </v-flex>
+                          </v-layout>
+                        </v-radio-group>
                       </v-col>
                     </v-row>
 
-                    <!-- RADIO -->
+                    <!-- RADIO TRANSACTION TYPE-->
                     <v-row>
                       <v-col cols="12" md="12">
                         <v-radio-group
@@ -68,6 +107,11 @@
                           class="ml-4 mr-4"
                           @change="clearRadioInputs"
                         >
+                        <template v-slot:label>
+                            <div>
+                              <strong>Transaction Type</strong>
+                            </div>
+                          </template>
                           <v-layout>
                             <v-flex>
                               <v-radio
@@ -345,6 +389,7 @@ export default {
     chequeShow: false,
     tfShow: false,
     forexShow: false,
+    purposeType: 0,
     transactionType: 0,
     date: new Date().toISOString().substr(0, 10),
     menu: false,
@@ -413,6 +458,7 @@ export default {
               bankName: element.bank_name || "",
               chequeNo: element.cheque_no || "",
               transferNo: element.transfer_no || "",
+              purposeType: element.purpose_type,
             });
           });
         })
@@ -449,7 +495,7 @@ export default {
             accountType.forEach((element) => {
               this.toAccounts.push({
                 value: element.id,
-                text: element.master_account.name,
+                text: this.getItemName(element.master_account),
               });
             });
           } else {
@@ -457,7 +503,7 @@ export default {
             accountType.forEach((element) => {
               this.fromAccounts.push({
                 value: element.id,
-                text: element.master_account.name,
+                text: this.getItemName(element.master_account),
               });
             });
           }
@@ -465,6 +511,17 @@ export default {
         .catch((error) => {
           console.log("error", error.response);
         });
+    },
+
+    getItemName(item) {
+      if (item.account_type_id == 1 && item.acc_number != null)
+        return (
+          item.name +
+          " (" +
+          item.acc_number.substring(item.acc_number.length - 4) +
+          ")"
+        );
+      return item.name;
     },
 
     editItem(item) {
@@ -479,10 +536,10 @@ export default {
         (type) => type.value === item.toAccountTypeId
       );
       this.fetchTypedAccounts(this.toAccountType.value, "to");
-      console.log(this.fromAccounts, "from");
       this.amount = item.amount;
       this.note = item.notes;
       this.transactionType = item.type;
+      this.purposeType = item.purposeType;
       if (item.chequeNo != "") this.chequeNo = item.chequeNo;
       if (item.transferNo != "") this.transferNo = item.transferNo;
       if (item.bankName != "") this.bankName = item.bankName;
@@ -520,6 +577,7 @@ export default {
       var data = new FormData();
       data.append("from_account_id", this.fromAccount);
       data.append("to_account_id", this.toAccount);
+      data.append("purpose_type", this.purposeType);
       data.append("transaction_type", this.transactionType);
       data.append("amount", this.amount);
       if (this.invoiceImg != null) data.append("invoice_img", this.invoiceImg);

@@ -17,7 +17,7 @@ class MasterAccountController extends Controller
      */
     public function index()
     {
-        $masterAccounts = MasterAccount::select('id', 'name', 'account_type_id')->with('accountType')->get();
+        $masterAccounts = MasterAccount::select('id', 'name', 'account_type_id', 'acc_number')->with('accountType')->get();
         return ApiResponse::create([
             'masterAccounts' => $masterAccounts
         ]);
@@ -56,7 +56,7 @@ class MasterAccountController extends Controller
         }
 
         try {
-            $masterAccount = MasterAccount::create(array_merge($request->except('profile_img','aadhar_img','pan_img'), $paths));
+            $masterAccount = MasterAccount::create(array_merge($request->except('profile_img', 'aadhar_img', 'pan_img'), $paths));
         } catch (\Exception $e) {
             return ApiResponse::createServerError($e);
         }
@@ -86,7 +86,7 @@ class MasterAccountController extends Controller
             $account = MasterAccount::find($id);
             $type = $account->account_type_id;
             if ($type == MasterAccount::BANK_ACCOUNT) {
-                $data = $account->only(['name', 'branch', 'ifsc']);
+                $data = $account->only(['acc_number', 'name', 'branch', 'ifsc']);
             } else if ($type == MasterAccount::CASH_ACCOUNT) {
                 $data = $account->only(['name']);
             } else if (
