@@ -39,7 +39,7 @@ Route::group(['prefix' => 'auth'], function () {
     });
 });
 Route::get('analytics/getMasterAccounts',[AnalyticController::class, 'getMasterAccounts']);
-Route::get('analytics/getAccountData', [AnalyticController::class, 'getAccountData']);
+Route::get('analytics/getAccountData/{account}', [AnalyticController::class, 'getAccountData']);
 
 Route::get('account/types', [AccountController::class, 'getAccountTypes']);
 Route::resource('accounts', AccountController::class);

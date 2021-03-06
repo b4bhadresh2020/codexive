@@ -1,24 +1,67 @@
-<template>
-  <v-row class="pa-3">
-    <v-col cols="12" md="6">
-      <v-select
-        v-model="accountType"
-        :items="accountTypes"
-        label="Select Account Type"
-        @input="fetchTypedAccounts(accountType)"
-        required
-      ></v-select>
-    </v-col>
-    <v-col cols="12" md="6">
-      <v-select
-        v-model="account"
-        :items="accounts"
-        label="Select Account"
-        required
-        @input="fetchAccountData(account)"
-      ></v-select>
-    </v-col>
-  </v-row>
+<template v-slot:top>
+    <v-card
+    elevation="20"
+    outlined
+    tile
+    class="mr-4 ml-4 mt-4"
+    >
+        <v-row class="pa-3">
+        <v-col cols="12" md="6">
+            <v-select
+                v-model="accountType"
+                :items="accountTypes"
+                label="Select Account Type"
+                @input="fetchTypedAccounts(accountType)"
+                required
+            ></v-select>
+        </v-col>
+        <v-col cols="12" md="6">
+            <v-select
+                v-model="account"
+                :items="accounts"
+                label="Select Account"
+                required
+                @input="fetchAccountData(account)"
+            ></v-select>
+        </v-col>
+        </v-row>
+        <h3 align="center" class="mt-4">Balance Sheet</h3>
+
+        <v-row class="pa-3">
+            <v-col cols="12" md="6">
+                <v-data-table
+                    :headers="toHeaders"
+                    :items="toTransaction"
+                 >
+
+                    <template  slot="body.append">
+                        <tr>
+                            <th>Total</th>
+                            <td>{{ sumToField('amount') }}</td>
+                        </tr>
+                    </template>
+
+                 </v-data-table>
+            </v-col>
+                 <v-col cols="12" md="6">
+                <v-data-table
+                    :headers="fromheaders"
+                    :items="fromTransaction"
+                 >
+
+                    <template  slot="body.append">
+                        <tr>
+                            <th>Total</th>
+                            <td>{{ sumFromField('amount') }}</td>
+                        </tr>
+                    </template>
+                 </v-data-table>
+            </v-col>
+        </v-row>
+        <hr>
+
+    </v-card>
+
 </template>
 
 <script>
@@ -31,6 +74,29 @@ export default {
     accountTypes: [],
     accounts: [],
     account: null,
+    loading:true,
+    toHeaders: [
+          {
+            text: 'Title (Credits)',
+            align: 'start',
+            filterable: false,
+            value: 'to_account.master_account.name',
+          },
+          { text: 'Amount', value: 'amount' },
+
+    ],
+    fromheaders:[
+          {
+            text: 'Title (Debits)',
+            align: 'start',
+            filterable: false,
+            value: 'from_account.master_account.name',
+          },
+          { text: 'Amount', value: 'amount' },
+    ],
+    toTransaction:[],
+    fromTransaction:[]
+
   }),
   methods: {
     fetchAccountTypes() {
@@ -78,18 +144,12 @@ export default {
       return item.name;
     },
     fetchAccountData(id){
-        const data = {
-            id: id
-        }
         this.$http
-        .get("analytics/getAccountData", data)
+        .get("analytics/getAccountData/"+id)
         .then((response) => {
-        //   if (response.data.status === 200) {
-        //     this.close();
-        //     this.initialize();
-        //   }
-        //   console.log(response);
-            // this.$toast.success(response.data.data.message[0]);
+            this.fromTransaction=response.data.data.from_transaction;
+            this.toTransaction=response.data.data.to_transaction;
+
         })
         .catch((error) => {
           this.$toast.error("Something went wrong");
@@ -97,7 +157,23 @@ export default {
         });
 
     },
+    getTransactionPerpose(id) {
+      if (id === 0) return "Normal";
+      if (id === 1) return "Salary";
+      if (id === 2) return "Withdrawal";
+    },
+    sumToField(key) {
+        // sum data in give key (property)
+        return this.toTransaction.reduce((a, b) => a + (b[key] || 0), 0)
+    },
+    sumFromField(key) {
+        // sum data in give key (property)
+        return this.fromTransaction.reduce((a, b) => a + (b[key] || 0), 0)
+    }
   },
+  created(){
+      this.loading=false;
+  }
 };
 </script>
 

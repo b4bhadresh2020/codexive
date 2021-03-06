@@ -340,13 +340,13 @@ export default {
     dialog: false,
     headers: [
       {
-        text: "To Account",
-        align: "start",
-        value: "toAccount",
+            text: "From Account",
+            align: "start",
+            value: "fromAccount",
       },
       {
-        text: "From Account",
-        value: "fromAccount",
+        text: "To Account",
+        value: "toAccount",
       },
       { text: "Type", value: "type" },
       { text: "Amount", value: "amount" },
