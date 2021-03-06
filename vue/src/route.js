@@ -11,6 +11,7 @@ import Branch from './components/branch/Branch'
 import AssignAccount from './components/account/AssignAccount'
 import Expense from './components/expense/Expense'
 import NotFound from './components/not-found/NotFound'
+import Analytic from './components/analytics/Analytic'
 
 let routes = [
     {
@@ -23,6 +24,11 @@ let routes = [
         name: 'master',
         component: Master,
         children: [
+            {
+                path: '/analytics',
+                name: 'analytics',
+                component: Analytic,
+            },
             {
                 path: '/branches',
                 name: 'branches',

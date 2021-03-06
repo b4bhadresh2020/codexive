@@ -1,28 +1,5 @@
 <template>
 <div class="form-center">
-  <!-- <v-container> -->
-      <!-- <v-snackbar
-      v-if="snackbar"
-      timeout="2000"
-      :value="true"
-      color="blue-grey"
-      absolute
-      right
-      rounded="pill"
-      top
-    >
-      {{ message }}
-      <template v-slot:action="{ attrs }">
-        <v-btn
-          color="red"
-          text
-          v-bind="attrs"
-          @click="snackbar = false"
-        >
-          &times;
-        </v-btn>
-      </template>
-    </v-snackbar> -->
 
       <v-card elevation="2" shaped class="cart-width">
 
@@ -127,7 +104,7 @@ export default {
             console.log("response.access_token" + response.data.access_token);
             if (response.status == 200) {
               localStorage.setItem("access_token", response.data.access_token);
-              this.$router.replace("dashbord");
+              this.$router.replace("analytics");
             }
           })
           .catch((error) => {

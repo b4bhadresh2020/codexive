@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AnalyticController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\ExpenseController;
@@ -37,6 +38,9 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('user', [AuthController::class, 'user']);
     });
 });
+Route::get('analytics/getMasterAccounts',[AnalyticController::class, 'getMasterAccounts']);
+Route::get('analytics/getAccountData', [AnalyticController::class, 'getAccountData']);
+
 Route::get('account/types', [AccountController::class, 'getAccountTypes']);
 Route::resource('accounts', AccountController::class);
 

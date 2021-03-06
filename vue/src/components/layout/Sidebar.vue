@@ -39,7 +39,8 @@
     data () {
       return {
         items: [
-            { title: 'Branch', icon: 'mdi-account-supervisor', link: '/branches'},
+            { title: 'Dashboard', icon: 'mdi-account-supervisor', link: '/analytics' },
+            { title: 'Branch', icon: 'mdi-account-supervisor', link: '/branches' },
             { title: 'Master Accounts', icon: 'mdi-view-dashboard', link: '/accounts' },
             { title: 'Asssign Account', icon: 'mdi-pencil', link: '/assign-account'},
             { title: 'Transactions', icon: 'mdi-bank-transfer', link: '/transactions' },
