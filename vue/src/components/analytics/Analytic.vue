@@ -36,8 +36,14 @@
 
                     <template  slot="body.append">
                         <tr>
-                            <th>Total</th>
+                            <th>Total Credits</th>
                             <td>{{ sumToField('amount') }}</td>
+                        </tr>
+                    </template>
+                    <template  slot="body.append">
+                        <tr>
+                            <th>Total</th>
+                            <td>{{ totalFiels('amount') }}</td>
                         </tr>
                     </template>
 
@@ -51,7 +57,7 @@
 
                     <template  slot="body.append">
                         <tr>
-                            <th>Total</th>
+                            <th>Total Debits</th>
                             <td>{{ sumFromField('amount') }}</td>
                         </tr>
                     </template>
@@ -169,7 +175,12 @@ export default {
     sumFromField(key) {
         // sum data in give key (property)
         return this.fromTransaction.reduce((a, b) => a + (b[key] || 0), 0)
-    }
+    },
+    totalFiels(key) {
+        const total = this.sumToField(key) - this.sumFromField(key);
+        // sum data in give key (property)
+        return total;
+    },
   },
   created(){
       this.loading=false;
