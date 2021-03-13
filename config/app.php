@@ -165,6 +165,9 @@ return [
         /*
          * Package Service Providers...
          */
+        Junges\ACL\ACLServiceProvider::class,
+        Junges\ACL\ACLAuthServiceProvider::class,
+        Junges\ACL\ACLEventsServiceProvider::class,
 
         /*
          * Application Service Providers...

@@ -14,4 +14,6 @@ use App\Http\Controllers\ApplicationController;
 |
 */
 
-Route::get('/{any}', [ApplicationController::class, 'index'])->where('any', '.*');
+Route::get('/{any}', function(){
+    return response()->json(['message' => 'Not Found.'], 404);
+})->where('any', '.*');
