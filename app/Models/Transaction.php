@@ -23,4 +23,8 @@ class Transaction extends Model
     public function fromAccount(){
         return $this->belongsTo(Account::class, 'from_account_id');
     }
+
+    public function expenses(){
+        return $this->hasMany(Expense::class,'account_id');
+    }
 }
