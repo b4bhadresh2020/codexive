@@ -123,7 +123,6 @@ export default {
     accountTypes: [],
     accounts: [],
     account: null,
-    loading1: true,
     toHeaders: [
       {
         text: "Debited from",
