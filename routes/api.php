@@ -40,6 +40,7 @@ Route::group(['prefix' => 'auth'], function () {
 });
 Route::get('analytics/getMasterAccounts',[AnalyticController::class, 'getMasterAccounts']);
 Route::get('analytics/getAccountData/{account}', [AnalyticController::class, 'getAccountData']);
+Route::get('analytics/getRojmelData', [AnalyticController::class, 'getRojmel'])->middleware('auth:api');
 
 Route::get('account/types', [AccountController::class, 'getAccountTypes']);
 Route::resource('accounts', AccountController::class);

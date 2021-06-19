@@ -231,5 +231,5 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
     ],
-
+    'opening_balance_acc' => env('OPENING_ACCOUNT_NAME'),
 ];

@@ -12,6 +12,7 @@ import AssignAccount from './components/account/AssignAccount'
 import Expense from './components/expense/Expense'
 import NotFound from './components/not-found/NotFound'
 import Analytic from './components/analytics/Analytic'
+import Rojmel from './components/analytics/Rojmel'
 
 let routes = [
     {
@@ -28,6 +29,11 @@ let routes = [
                 path: '/analytics',
                 name: 'analytics',
                 component: Analytic,
+            },
+            {
+                path: '/rojmel',
+                name: 'rojmel',
+                component: Rojmel,
             },
             {
                 path: '/branches',
