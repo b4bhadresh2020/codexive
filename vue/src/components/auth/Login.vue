@@ -100,8 +100,6 @@ export default {
         axios
           .post("auth/login", { email: this.email, password: this.password })
           .then((response) => {
-            console.log("response.status" + response.status);
-            console.log("response.access_token" + response.data.access_token);
             if (response.status == 200) {
               localStorage.setItem("access_token", response.data.access_token);
               this.$router.replace("analytics");

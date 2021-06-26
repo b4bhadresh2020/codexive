@@ -3,7 +3,7 @@ import App from './App.vue'
 import vuetify from './plugins/vuetify';
 import vueRouter from 'vue-router';
 import axios from 'axios'
-import route from './route.js';
+import route from './routes.js';
 import Toast from "vue-toastification";
 import "vue-toastification/dist/index.css";
 

@@ -58,7 +58,8 @@ export default {
   },
   methods: {
       logout(){
-          this.$router.replace('/');
+        localStorage.removeItem('access_token');
+        this.$router.replace('/');
       }
   }
 };

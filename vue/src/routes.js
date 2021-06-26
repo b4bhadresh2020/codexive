@@ -29,36 +29,57 @@ let routes = [
                 path: '/analytics',
                 name: 'analytics',
                 component: Analytic,
+                meta: {
+                    guarded : true
+                }
             },
             {
                 path: '/rojmel',
                 name: 'rojmel',
                 component: Rojmel,
+                meta: {
+                    guarded : true
+                }
             },
             {
                 path: '/branches',
                 name: 'branches',
-                component: Branch
+                component: Branch,
+                meta: {
+                    guarded : true
+                }
             },
             {
                 path: '/accounts',
                 name: 'accounts',
-                component: Account
+                component: Account,
+                meta: {
+                    guarded : true
+                }
             },
             {
                 path: '/transactions',
                 name: 'transactions',
-                component: Transaction
+                component: Transaction,
+                meta: {
+                    guarded : true
+                }
             },
             {
                 path: '/assign-account',
                 name: 'assign-account',
-                component: AssignAccount
+                component: AssignAccount,
+                meta: {
+                    guarded : true
+                }
             },
             {
                 path: '/expense',
                 name: 'expense',
-                component: Expense
+                component: Expense,
+                meta: {
+                    guarded : true
+                }
             }
         ]
     },
@@ -73,4 +94,13 @@ const router = new Router({
     mode: 'history'
 
 });
+
+router.beforeEach((to, from, next) => {
+    if (!Object.prototype.hasOwnProperty.call(to.meta, 'guarded')) next();
+    else if(localStorage.getItem('access_token')){
+        next();
+    }
+    else next({ path: '/' });
+})
+
 export default router;
